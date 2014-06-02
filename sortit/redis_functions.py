@@ -171,10 +171,10 @@ def get_users_ratings(userID, itemID, limit):
     return redis.zrevrange("user:"+userID+":"+str(itemID), 0, limit)
 
 ###
-# Redis LUA scripts that are loaded into redis on init. Function SHA strings are kept on global variables
+# Redis LUA scripts that are loaded into redis on init. SHA strings for these functions are kept on global variables.
 ###
 def load_lua_scripts():
-# This script gets all items a lane has. These items are hashes that contain everything item might contain
+# Fetches all data for lane
     getViewData = """
         local userInfo = redis.call('hmget', 'user:'..KEYS[2]..':'..KEYS[1]..':data', 'id', 'title', 'color', 'image', 'parent', 'title_id', 'color_id', 'image_id', 'parent_id')
         local itemInfo = redis.call('hmget', 'item:'..KEYS[1], "id", "title", "color", "image", "parent", "title_id", "color_id", "image_id", "parent_id")
@@ -187,7 +187,7 @@ def load_lua_scripts():
     """
 
 # This Lua-script provides search functionality
-# - It's done with redis command 'keys' which is bad. Next version should have all words splitted when loading items.
+# - It's done with redis command 'keys' with wild card which is bad. Next version should have all words splitted when loading items.
     searchWordLuaScript = """
         local list = redis.call('keys', KEYS[1])
         local result = {}
@@ -202,7 +202,8 @@ def load_lua_scripts():
         end
         return result
         """
-# This LUA script handles updating average lanes. To update average we must firstly remove users votes on that average. That's the reason we have lastAdditionToAverage. Much faster to remove last addition and add only this one users sort to average
+# This LUA script handles updating average lanes. To update average we must firstly remove users votes on that average. That's the reason we have lastAdditionToAverage.
+# Much faster to remove last addition and add only this one users sort to average than calculate all sorts inside that item.
     updateAverageWithSteps = """
         local ratings = redis.call('zrevrange', 'user:'..KEYS[2]..':'.. KEYS[1],0,-1)
         local average = redis.call('zrevrange', 'item:'..KEYS[1]..':average',0,-1)
@@ -221,7 +222,7 @@ def load_lua_scripts():
             redis.call('zunionstore', 'item:'..KEYS[1]..':average', 2, 'item:'..KEYS[1]..':average', 'user:'..KEYS[2]..':'..KEYS[1])
         end
     """
-# Because you can vote items for example TITLE, some sorts have connections to other items. This script updates connections item might have.
+# Because you can vote items attributes, for example item TITLE, some items have connections to other items. This script updates possible connected items.
     updateConnectedItem = """
         local connectedItemID = redis.call('hget', 'item:'..KEYS[1]..':connected', 'id')
         local connectedItemAttribute = redis.call('hget', 'item:'..KEYS[1]..':connected', 'attribute')
