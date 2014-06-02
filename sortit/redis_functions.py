@@ -128,7 +128,7 @@ def update_ratings(listOfItems, parentItem, user):
 
 def redis_load_movie_items():
     global BASE_STRUCTURE_MOVIE_CATEGORY
-    f = open(PROJECT_ROOT+'/ml-1m/umovies.dat', 'r')
+    f = open(PROJECT_ROOT+'/ml/umovies.dat', 'r')
     pipe = redis.pipeline()
     for line in f:
         movie = line.decode('utf-8').split("::")
@@ -138,7 +138,7 @@ def redis_load_movie_items():
 
 
 def redis_load_user_ratings(parentItemID):
-    f = open(PROJECT_ROOT+'/ml-1m/uratings.dat', 'r')
+    f = open(PROJECT_ROOT+'/ml/uratings.dat', 'r')
     pipe = redis.pipeline()
     for line in f:
         # file format: UserID::MovieID::Rating::Timestamp
