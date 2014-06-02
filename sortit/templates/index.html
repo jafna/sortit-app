@@ -1,0 +1,372 @@
+<!doctype html>
+<html>
+<head>
+  <title>SortIt!</title>
+  <link href="{{ url_for('static', filename='jquery/css/smoothness/jquery-ui-1.10.4.custom.css') }}" rel="stylesheet"/>
+  <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}"/>
+  <script src="{{ url_for('static', filename='jquery/js/jquery-1.10.2.js') }}"></script>
+  <script src="{{ url_for('static', filename='jquery/js/jquery-ui-1.10.4.custom.js') }}"></script>
+  <meta charset="utf-8"/>
+</head>
+<body style="background:{{backgroundColor}}">
+<div id="top-nav-container">
+  <div id="top-nav">
+    <h1>
+    {% if baseUrl != "" %}
+      <a href="{{url_for('sortit.redirect_to_vote_item', item_id=itemId, attribute='title')}}">{{roomData[1]}}</a>
+    {% else %}
+      {{roomData[1]}}
+    {% endif %}
+    {% if roomData[3] %}
+    <a href="{{url_for('sortit.redirect_to_vote_item', item_id=itemId, attribute='image')}}"><img src="{{ url_for('static', filename='images') }}/{{roomData[3]}}"/></a>
+    {% else %}
+    <a href="{{url_for('sortit.redirect_to_vote_item', item_id=itemId, attribute='image')}}"><img src="{{ url_for('static', filename='images/logo.png') }}"></a>
+    {% endif %}
+    </h1>
+  </div>
+</div>
+<div id="search-bar-placeholder"></div>
+<div id="search-bar" class="center-div">
+    <div class="topbox input">
+      <input id="search-input" class="search-input" type="text" placeholder="Type here to add new items!" autocomplete="off"/>
+    </div>
+    <div class="topbox trash">
+      <ul id="trash-list" class="connected-list">
+      </ul>
+    </div>
+    <div><ul id="result"></ul></div>
+</div>
+
+<div class="block-container">
+<div class="tablerow">
+  <div class="tablecell">
+    <div class="centertext">
+      <h1>{{leftLaneTitle}}</h1>
+    </div>
+  </div>
+  <div class="tablecell"></div>
+  <div class="tablecell">
+    <div class="centertext">
+      <h1>My sort</h1>
+      {% if not hideLink %}
+        <a href="{{url_for('sortit.redirect_to_my_room', item_id=itemId)}}">generate link for my sort</a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+<div class="average-container">
+    <div id="averages-and-reveal">
+      <div id="averages">
+{% for item in averageRatings %}
+  {% if item[1] %}
+         <div class="bubble-container left-container" data-id="{{item[0]}}" data-title="{{item[1].decode('utf-8', 'replace')}}">
+          <div class="image-container">
+            <img height=100% src="{{ url_for('static', filename='images') }}/{{item[3]}}"/>
+          </div>
+          <div class="colwrap">
+            <div class="left-title"><a href="{{url_for('sortit.render_item_room', item_id=item[0])}}">{{item[1].decode('utf-8', 'replace')}}</a></div>
+          </div>
+          <div class="tip-to-right"></div>
+        </div>
+  {% endif %}
+{% endfor %}
+      <div class="left-container hidden" style="display:none;"></div>
+       </div>
+{% if numberOfElementsHidden>0 %}
+       <div class="bubble-container items-left">
+          <div class="colwrap">
+            <div class="left-title" id="item-reveal"><a href="javascript:void(0)">
+                {{numberOfElementsHidden}} items more..
+            </a></div>
+          </div>
+          <div class="tip-to-right"></div>
+        </div>
+{% endif %}
+
+    </div>
+  </div>
+  <div class="pilar"></div>
+  <div class="sorting-container">
+    <div>
+    <ul id="sorting" class="sort-list right connected-list">
+
+    </ul>
+  </div>
+  </div>
+</div>
+
+<script type="text/javascript">
+var delay = (function(){
+  var timer = 0;
+  return function(callback, ms){
+    clearTimeout (timer);
+    timer = setTimeout(callback, ms);
+  };
+})();
+
+var numberOfItemsInLeftLane = function(){return $('.bubble-container.left-container').length;};
+
+var currentLeftLane = function(){
+  var leftItems = [];
+  $('.bubble-container.left-container').each(function(index){
+    leftItems.push([$(this).data("id"), $(this).data("title")]);
+  });
+  return leftItems;
+};
+
+var numberOfHiddens = {{numberOfElementsHidden}};
+
+var addItem = function(id, title, color, image){
+  var sorting = $("#sorting");
+  sorting.append(
+    "<li class=\"sortable-item bubble\" id=\""+id+"\">"+
+    "<div>"+
+      "<div class=\"tip-to-left\" style=\"border-right: 35px solid "+color+"\"></div>"+
+        "<div class=\"bubble-container\" style=\"background:"+color+"\">"+
+          "<div class=\"right-title\"><a href=\"{{url_for('sortit.render_item_room')}}item/"+id+"\">"+title+"</a></div>"+
+          "<img height=100% width=\"auto\" src=\"{{ url_for('static', filename='images') }}/"+image+"\"/>"+
+        "</div>"+
+    "</div>"+
+    "</li>");
+};
+var returnShowMoreItem = function(numberOfItemsHidden){
+  return "<div class=\"bubble-container items-left\">"+
+          "<div class=\"colwrap\">"+
+            "<div class=\"left-title\" id=\"item-reveal\"><a href=\"javascript:void(0)\">"+
+                numberOfItemsHidden+" items more.."+
+            "</a></div>"+
+          "</div>"+
+          "<div class=\"tip-to-right\"></div>"+
+        "</div>"
+
+}
+
+var returnLeftLaneItemTemplate = function(id, title, image){
+  return "<div class=\"bubble-container left-container\" data-id=\""+id+"\" data-title=\""+title+"\">"+
+          "<div class=\"image-container\">"+
+            "<img height=100% src=\"{{ url_for('static', filename='images') }}/"+image+"\"/>"+
+          "</div>"+
+          "<div class=\"colwrap\">"+
+            "<div class=\"left-title\"><a href=\"{{url_for('sortit.render_item_room')}}item/"+id+"\">"+title+"</a></div>"+
+          "</div>"+
+          "<div class=\"tip-to-right\"></div>"+
+        "</div>"
+
+
+};
+
+
+var addAverageItem = function(id, title, image, index){
+  if(typeof index !== 'undefined'){
+    $(".left-container").eq(index).before(returnLeftLaneItemTemplate(id,title, image));
+  }else{
+    //if index is not given, add new item to the end
+    $(".left-container.hidden").before(returnLeftLaneItemTemplate(id, title, image));
+  }
+};
+
+
+{% for item in userRatings %}
+  {% if item[1] %}
+    addItem("{{item[0]}}", "{{item[1].decode('utf-8','replace')}}", "{{item[2]}}", "{{item[3]}}");
+  {% endif %}
+{% endfor %}
+
+var searchInput = $("#search-input");
+
+var searchBarTopHeight = $("#search-bar").offset().top;
+
+//Make top bar to follow screen on scrolling
+$(window).scroll(function(){
+  var y = $(this).scrollTop();
+  if(y>searchBarTopHeight){
+    $("#search-bar").addClass("fixed-position");
+    $("#search-bar-placeholder").addClass("fixed-height")
+  }else{
+     $("#search-bar-placeholder").removeClass("fixed-height")
+     $("#search-bar").removeClass("fixed-position");
+  }
+});
+
+//If user presses enter for text field
+$("#search-input").keypress(function(e){
+  //enter pressed
+  if(e.which == 13){
+    inputValue = $("#search-input").val();
+    $.ajax({
+      dataType:'json',
+      type:'POST',
+      url:'{{url_for('sortit.add_item_for_user', item_id=itemId, room_id=roomId)}}',
+      data:{title:inputValue},
+      success:function(data){
+        if(data.result !== "error"){
+          var escaped = $(".left-container.hidden").text(data.result[0][1]).html();
+          addItem(data.result[0][0], escaped, data.result[0][2], data.result[0][3]);
+        }
+      }});
+    $("#search-input").val("");
+
+  }
+});
+
+//When user has written atleast 3 letters give some options
+searchInput.autocomplete({
+  source: function (request, response) {
+    jQuery.get("{{url_for('sortit.search_items', item_id=itemId, room_id=roomId)}}", {
+      search_string: searchInput.val()
+    }, function (data) {
+      var result = []
+      $.each(data.movies, function(i, value){
+        var split = value.split("::");
+        var labeled = {value:split[0], label:split[1]};
+        result.push(labeled);
+      });
+      response(result);
+    });
+  },
+  minLength: 3,
+  focus: function(event, ui){
+    event.preventDefault();
+    searchInput.val(ui.item.label);
+  },
+  select: function(event, ui){
+    event.preventDefault();
+    $.ajax({
+      dataType:'json',
+      type:'POST',
+      url:'{{url_for('sortit.add_item_for_user', item_id=itemId, room_id=roomId)}}',
+      data:{item:ui.item.value},
+      success:function(data){
+        if(data.result!=="error"){
+          var escaped = $(".left-container.hidden").text(data.result[0][1]).html();
+          addItem(data.result[0][0], escaped, data.result[0][2], data.result[0][3]);
+        }
+      }});
+    $("#search-input").val("");
+    return false;
+  }
+});
+
+//Initiate users sortable field
+$("#sorting").sortable({
+  connectWith:'.connected-list',
+  stop: function(e, ui) {
+    var data = $(this).sortable('toArray', { attribute: 'id' });
+    $.ajax({
+      url: '{{url_for('sortit.update_order', item_id=itemId, room_id=roomId)}}',
+      dataType:'json',
+      type:'POST',
+      data: { items: data },
+      success: function(data){}
+    });
+    $("#search-input").val("");
+  },
+  helper:'clone',
+  activate:function(){
+    $(".topbox.trash").stop().animate({'top':'-100px'},200);
+  },
+  beforeStop:function(){
+    $(".topbox.trash").stop().animate({'top':'0px'},200);
+  }
+});
+
+//Initiate trashcan field
+$("#trash-list").sortable({
+  connectWith:".connected-list",
+  receive: function(e, ui){
+    $("#trash-list").empty();
+  },
+  placeholder: "ui-state-highlight"
+});
+
+//Event listener for 'show more' item in left lane
+$("#averages-and-reveal").on('click', '#item-reveal a', function(event){
+  link = $(this);
+  $.getJSON('{{url_for('sortit.show_more_items', item_id=itemId, room_id=roomId)}}',
+            {
+              elements:numberOfItemsInLeftLane()
+            },
+            function(data){
+              if(data.items !== "error"){
+                $.each(data.items,function(i,val){addAverageItem(val[0], val[1],val[3])});
+                $(".items-left").remove();
+                numberOfHiddens = data.left;
+                if(data.left>0){
+                  $("#averages").after(returnShowMoreItem(data.left));
+                }
+              }
+            });
+});
+
+setInterval(function() {
+    var leftItems = numberOfItemsInLeftLane();
+    var leftLane = currentLeftLane();
+    if(leftItems<5){
+      updateItems = 5;
+    }else{
+      updateItems = leftItems;
+    }
+    $.ajax({
+      url:'{{url_for('sortit.update_left_lane', item_id=itemId, room_id=roomId)}}',
+      dataType:'json',
+      data:{itemCount:updateItems},
+      success:function(data){
+        if(data.items !== "error"){
+          var itemsLength = data.items.length;
+          for(var i=0;i<itemsLength;i++){
+            itemStatus = -1;
+            for(var a=0;a<leftLane.length;a++){
+              //search if item already is in left lane
+              if(leftLane[a][0] == data.items[i][0]){
+                itemStatus = a;
+                break;
+              }
+            }
+            if(itemStatus == i){
+              continue;
+            }
+            if(itemStatus == -1){
+              //new item in left lane
+              addAverageItem(data.items[i][0],data.items[i][1],data.items[i][3],i);
+            }else{
+              //item already in lane so animate its new position
+              var itemToBeMoved = $(".left-container").eq(itemStatus);
+              //animated height over one item is 80px(item height) +12px(margin)
+              var movementHeight = (i - itemStatus)*92;
+              itemToBeMoved.data('target', i);
+              itemToBeMoved.animate({top: movementHeight}, 500,
+                function(){
+                  var selectedItem = $(this);
+                  $(".left-container").eq(selectedItem.data('target')).before(selectedItem);
+                  selectedItem.css('top', '0px');
+                });
+            }
+          }
+          //remove items which weren't found on update message
+          for(var i=0; i<leftLane.length;i++){
+            var found = false;
+            for(var a=0;a<itemsLength;a++){
+              if(leftLane[i][0] == data.items[a][0]){
+                found = true;
+                break;
+              }
+            }
+            if(found == false){
+              $(".left-container").eq(i).remove();
+            }
+          }
+          //update possible 'show more' item
+          if(data.left>0 && numberOfHiddens!=data.left){
+            $(".items-left").remove();
+            $("#averages").after(returnShowMoreItem(data.left));
+            numberOfHiddens = data.left;
+          }
+        }
+      }
+    });
+}, 6000);
+
+$("#sorting").disableSelection();
+</script>
+</body>
+</html>
