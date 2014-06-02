@@ -6,7 +6,8 @@ Rate things by draging and droping them! Deployed app can be tested here: http:/
 
 Requirements
 ------------
-
+* Python (2.7)
+* Redis (2.6.0+ because SortIt uses Lua scripts. Notice that Ubuntu's packet manager ships with older)
 * Flask ( pip install Flask )
 * Flask-And-Redis ( pip install Flask-And-Redis )
 * Flask-Testing ( pip install Flask-Testing )
