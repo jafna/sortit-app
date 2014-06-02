@@ -21,9 +21,9 @@ First load base data (contains small set of movielens data and a base category).
 $ python manage.py init
 
 Run server
-::
+'''
 $ python manage.py run
-
+'''
 Direct your browser to: 127.0.0.1:5000
 
 To-Do
