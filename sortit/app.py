@@ -27,7 +27,7 @@ def render_item_room(item_id = "0", room_id = "root"):
         leftLaneTitle = "Average sort"
         hideRoomGenerationLink = False
     else:
-        # room owners ratings, showed in left lane
+        # room owners ratings, shown in the left lane
         roomOwner = redis.get("item:"+item_id+":"+room_id)
         leftLaneRatings = get_users_ratings(roomOwner, item_id, numberOfShownRatings-1)
         numberOfElementsHidden = items_hidden("user:"+roomOwner+":"+item_id, numberOfShownRatings)
