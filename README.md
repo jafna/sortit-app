@@ -34,4 +34,5 @@ To-Do
 =====
 * Have recommendations for users
 * Users to have ability to paste URLs
+* Clean template/index.html
 * More test coverage!
