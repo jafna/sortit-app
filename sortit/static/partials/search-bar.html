@@ -1,0 +1,14 @@
+<div id="search-bar" class="center-div" ng-controller="SearchBarController">
+    <div class="topbox input" ngForm>
+      <input id="search-input" class="search-input" type="text" placeholder="Type here to add new items!" autocomplete="off" ng-model="searchInput" ui-autocomplete="autocompleteOptions"/>
+    </div>
+    <div class="topbox trash">
+      <ul id="trash-list" class="connected-list">
+      </ul>
+    </div>
+    <div>
+        <ul id="result">
+        </ul>
+    </div>
+</div>
+

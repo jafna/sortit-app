@@ -10,7 +10,7 @@ sortit = Blueprint('sortit', __name__, template_folder='templates')
 @sortit.route("/item/<item_id>")
 @sortit.route("/item/<item_id>/room/<room_id>")
 def render_item_room(item_id = "0", room_id = "root"):
-    itemData = redis_get_all_view_information(item_id, g.uuid)
+    """itemData = redis_get_all_view_information(item_id, g.uuid)
     if itemData[0] is None:
         abort(404)
     itemData[1] = itemData[1].decode('utf-8')
@@ -50,14 +50,23 @@ def render_item_room(item_id = "0", room_id = "root"):
             leftLaneTitle = leftLaneTitle,
             hideLink = hideRoomGenerationLink,
             numberOfElementsHidden = numberOfElementsHidden))
-    resp.headers['Cache-Control'] = 'no-cache'
-    return resp
+    resp.headers['Cache-Control'] = 'no-cache'"""
+    return make_response(render_template('angular-index.html'))
 
 @sortit.route("/_add_item", methods=['POST'])
-@sortit.route("/item/<item_id>/_add_item", methods=['POST'])
-@sortit.route("/item/<item_id>/room/<room_id>/_add_item", methods=['POST'])
-def add_item_for_user(room_id = "root", item_id = "0"):
-    newItemID = request.form.get("item", "", type=str)
+def add_item_for_user():
+    print "post form"
+    f = request.form
+    for key in f.keys():
+        for value in f.getlist(key):
+            print "key:",key," and value:",value
+    room_id = request.form.get("room_id", "root")
+    item_id = request.form.get("parentItemId", "0")
+    newItemID = request.form.get("item", "")
+    newItemTitle = request.form.get("title", "")
+    if newItemTitle == "" and newItemID == "":
+        print("Couldn't add new item. Not enough data")
+        return jsonify(result="error")
     if newItemID == "":
         #generate new item!
         newItemTitle = request.form.get("title").strip()
@@ -72,7 +81,7 @@ def add_item_for_user(room_id = "root", item_id = "0"):
     usersRatings.append(newItemID)
     update_ratings(usersRatings, item_id, g.uuid)
     result = get_items([newItemID])
-    return jsonify(result = result)
+    return get_right_lane()
 
 @sortit.route("/_update_order", methods=['POST'])
 @sortit.route("/item/<item_id>/_update_order", methods=['POST'])
@@ -100,11 +109,11 @@ def show_more_items(room_id = "root", item_id = "0"):
     results = get_items(items)
     return jsonify(items = results, left = itemsLeft)
 
-@sortit.route("/_update_left_lane")
-@sortit.route("/item/<item_id>/_update_left_lane")
-@sortit.route("/item/<item_id>/room/<room_id>/_update_left_lane")
-def update_left_lane(room_id="root", item_id="0"):
-    numberOfItems = request.args.get("itemCount")
+@sortit.route("/_get_left_lane_items")
+def get_left_lane():
+    numberOfItems = request.args.get("itemCount", 10)
+    item_id = request.args.get("parentItemId", "0")
+    room_id = request.args.get("roomId", "root")
     if room_id != "root":
         #left lane is someones personal sort
         roomOwner = redis.get("item:"+item_id+":"+room_id)
@@ -115,8 +124,18 @@ def update_left_lane(room_id="root", item_id="0"):
         items = redis.zrevrange("item:"+item_id+":average", 0, int(numberOfItems)-1)
         itemsLeft = items_hidden("item:"+item_id+":average", numberOfItems)
     results = get_items(items)
-    return jsonify(items = results, left = itemsLeft)
+    return jsonify(itemCount=numberOfItems, parentId=item_id, roomId=room_id, items = results, countHidden=itemsLeft)
 
+@sortit.route("/_get_right_lane_items")
+def get_right_lane():
+    item_id = request.args.get("parentItemId", "0")
+    
+    #users personal ratings to lane on the right
+    usersRatings = get_users_ratings(g.uuid, item_id, -1)
+    numberOfUserRatings = len(usersRatings)
+
+    results = get_items(usersRatings)
+    return jsonify(itemCount=numberOfUserRatings, parentId=item_id, items = results)
 
 @sortit.route("/my_room")
 @sortit.route("/item/<item_id>/my_room")
@@ -142,13 +161,13 @@ def redirect_to_vote_item(item_id, attribute):
 
 
 @sortit.route("/_search_items")
-@sortit.route("/item/<item_id>/_search_items")
-@sortit.route("/item/<item_id>/room/<room_id>/_search_items")
 def search_items(room_id = "root", item_id = "0"):
-    string = request.args.get("search_string", "", type=str).lower()
+    string = request.args.get("searchString", "", type=str).lower()
+    item_id = request.args.get("parentItemId", "0")
+
     string = string.replace('*','')
     results = search_string(string, item_id)
-    return jsonify(movies = results)
+    return jsonify(results = results)
 
 if __name__ == '__main__':
     app.debug = False

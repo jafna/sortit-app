@@ -14,9 +14,9 @@ def get_room_owner(room_id):
 
 def search_string(string, fromItem):
     results = []
-    if len(string)>2:
-        words = string.split(" ")
-        for i,word in enumerate(words):
+    words = string.split(" ")
+    for i,word in enumerate(words):
+        if(len(word)>0):
             searchKey = "item:"+fromItem+":word:"+word+"*"
             wordResults = REDIS_LUA_SEARCH_ITEM(keys=[searchKey])
             if i>0:
@@ -29,7 +29,7 @@ def search_string(string, fromItem):
 def get_items(items):
     pipe = redis.pipeline()
     for item in items:
-        pipe.hmget("item:"+item, "id","title", "color","image")
+        pipe.hgetall("item:"+item)
     return pipe.execute()
 
 def items_hidden(listKey, numberOfItemsShown):

@@ -1,0 +1,11 @@
+<ul id="sorting" class="sort-list right connected-list" ng-repeat="item in items">
+  <li class="sortable-item bubble" id="{{item.id}}">
+    <div>
+      <div class="tip-to-left" style="border-right: 35px solid {{item.color}}"></div>
+        <div class="bubble-container" style="background: {{item.color}}">
+          <div class="right-title"><a href="">{{item.title}}</a></div>
+          <img height=100% width="auto" src="static/images/{{item.image}}"/>
+        </div>
+    </div>
+  </li>
+</ul>

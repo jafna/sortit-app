@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en" ng-app="SortIt">
+<head>
+  <meta charset="utf-8"/>
+  <title>SortIt!</title>
+  <link href="{{ url_for('static', filename='jquery/css/smoothness/jquery-ui-1.10.4.custom.css') }}" rel="stylesheet"/>
+  <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}"/>
+  <script src="{{ url_for('static', filename='jquery/js/jquery-1.10.2.js') }}"></script>
+  <script src="{{ url_for('static', filename='jquery/js/jquery-ui-1.10.4.custom.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/angular.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/autocomplete.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/angular-resource.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/angular-route.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/services.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/controllers.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/directives.js') }}"></script>
+  <base href="/">
+</head>
+<body>
+<div id="top-nav-container">
+  <div id="top-nav">
+    <h1>
+    	<a href="{{url_for('sortit.redirect_to_vote_item', item_id=itemId, attribute='title')}}">TITLE</a>
+    	<a href="{{url_for('sortit.redirect_to_vote_item', item_id=itemId, attribute='image')}}"><img src="{{ url_for('static', filename='images') }}/placeholder.jpg"/></a>
+    </h1>
+  </div>
+</div>
+<div id="search-bar-placeholder"></div>
+<search-bar></search-bar>
+<div class="block-container" ng-view></div>
+
+</body>
+</html>
