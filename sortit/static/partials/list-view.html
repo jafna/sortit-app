@@ -1,27 +1,22 @@
-<div class="tablerow">
-  <div class="tablecell">
-    <div class="centertext">
-      <h1>{{leftLaneTitle}}</h1>
-    </div>
-  </div>
-  <div class="tablecell"></div>
-  <div class="tablecell">
-    <div class="centertext">
-      <h1>My sort</h1>
-        <!-- <a href="{{url_for('sortit.redirect_to_my_room', item_id=itemId)}}">generate link for my sort</a>-->
-      <a href="">generate link for my sort</a>
-    </div>
-  </div>
-</div>
-<div class="average-container">
-  <div id="averages-and-reveal">
-    <list-left-lane></list-left-lane>
-  </div>
-</div>
-<div class="pilar"></div>
-<div class="sorting-container">
-  <div>
-    <list-right-lane></list-right-lane>
-  </div>
-</div>
+<table class="list-table">
+  <tr>
+    <td class="text-container">
+      <div class="light-text vertical">My sort</div>
+    </td>
+    <td rowspan="2">
+      <div class="list-view">
+        <div class="user-items-container">
+          <list-items items="userItems"></list-items>
+        </div>
+        <div class="color-gradient"></div>
+        <list-static-items items="averageItems"></list-static-items>
+      </div>
+    </td>
+  </tr>
+  <tr>
+    <td class="text-container">
+      <div class="light-text vertical">Average</div>
+    </td>
+  </tr>
+</table>
 

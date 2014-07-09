@@ -3,23 +3,28 @@
 from flask.ext.script import Manager
 
 from sortit import create_app
-from sortit.redis_functions import redis, make_base_structure
+from sortit.redis_functions import redis
 from sortit.globals import *
+
+from gevent.wsgi import WSGIServer
+
+import werkzeug.serving
 
 app = create_app()
 manager = Manager(app)
 
 @manager.command
-def run():
-    """Run in local machine."""
-    app.run()
+@werkzeug.serving.run_with_reloader
+def debug():
+    app.debug = True
+    server = WSGIServer(("", 5000), app)
+    server.serve_forever()
 
 @manager.command
-def init():
-    """Reset+init database."""
-    print("### Started to load initial data. ###")
-    redis.flushall()
-    make_base_structure()
+def run():
+    app.debug = False
+    server = WSGIServer(("", 5000), app)
+    server.serve_forever()
 
 if __name__ == "__main__":
     manager.run()

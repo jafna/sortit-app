@@ -1,3 +1,4 @@
 *.pyc
 *.*~
 env
+sortit/static/item_images

@@ -5,33 +5,26 @@
 
 angular.module('SortIt.directives', ['SortIt.services'])
 
-.directive('listLeftLane', ['LeftItems', function(LeftItems){
+.directive('listItems', function(){
   return {
-    templateUrl:'static/partials/list-left-lane.html',
+    templateUrl:'static/partials/list-items.html',
     restrict:'E',
-    scope:true,
+    scope:{items:'='},
     link:function(scope, element, attrs){
-        scope.averages = [];
-        LeftItems.get({parentItemId:'0'}, function(data){
-            scope.averages = data.items;
-        });
     }
   };
-}])
+})
 
-.directive('listRightLane',['$rootScope', 'RightItems', function($rootScope, RightItems){
+.directive('listStaticItems', function(){
   return {
-    templateUrl:'static/partials/list-right-lane.html',
+    templateUrl:'static/partials/list-static-items.html',
     restrict:'E',
-    scope:true,
+    scope:{items:'='},
     link:function(scope, element, attrs){
-        scope.items = [];
-        RightItems.get({parentItemId:'0'}, function(data){
-            $rootScope.userItems = data.items;
-        });
     }
   };
-}])
+})
+
 
 .directive('searchBar', function(){
   return {
@@ -39,7 +32,19 @@ angular.module('SortIt.directives', ['SortIt.services'])
     restrict:'E',
     scope:true,
     link:function(scope, element, attrs){
-        
     }
   };
-});
+})
+
+.directive('listActiveTags', ['$rootScope', function($rootScope){
+  return {
+    templateUrl:'static/partials/list-active-tags.html',
+    restrict:'E',
+    scope:true,
+    link:function(scope,element,attrs){
+      scope.removeTag = function(tag){
+        $rootScope.activeTags = _.without($rootScope.activeTags, tag);
+      };
+    }
+  }
+}]);

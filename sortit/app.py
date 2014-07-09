@@ -1,94 +1,53 @@
 # -*- coding: utf-8 -*-
-from flask import Blueprint, url_for, render_template, jsonify, request, g, make_response, redirect, abort
+import gevent.monkey
+gevent.monkey.patch_all()
+
+import re
+from flask import Blueprint, url_for, render_template, jsonify, request, g, make_response, redirect, abort, Response
 from .utils import *
 from .redis_functions import *
 from .globals import *
+import ServerSentEvent
 
 sortit = Blueprint('sortit', __name__, template_folder='templates')
 
-@sortit.route("/")
-@sortit.route("/item/<item_id>")
-@sortit.route("/item/<item_id>/room/<room_id>")
-def render_item_room(item_id = "0", room_id = "root"):
-    """itemData = redis_get_all_view_information(item_id, g.uuid)
-    if itemData[0] is None:
-        abort(404)
-    itemData[1] = itemData[1].decode('utf-8')
-
-    #users personal ratings to lane on the right
-    usersRatings = get_users_ratings(g.uuid, item_id, -1)
-    numberOfUserRatings = len(usersRatings)
-    numberOfShownRatings = numberOfUserRatings + 5 - numberOfUserRatings%5
-
-    if room_id == "root":
-        #averages to left lane
-        leftLaneRatings = redis.zrevrange("item:"+item_id+":average", 0, numberOfShownRatings-1)
-        numberOfElementsHidden = items_hidden("item:"+item_id+":average", numberOfShownRatings)
-        leftLaneTitle = "Average sort"
-        hideRoomGenerationLink = False
-    else:
-        # room owners ratings, shown in the left lane
-        roomOwner = redis.get("item:"+item_id+":"+room_id)
-        leftLaneRatings = get_users_ratings(roomOwner, item_id, numberOfShownRatings-1)
-        numberOfElementsHidden = items_hidden("user:"+roomOwner+":"+item_id, numberOfShownRatings)
-        sortName = redis.get("user:"+roomOwner)
-        if sortName is None:
-            leftLaneTitle = "Anonymous sort"
-        else:
-            leftLaneTitle = sortName + "'s sort"
-        hideRoomGenerationLink = True
-
-    result = get_items(usersRatings)
-    result2 = get_items(leftLaneRatings)
-    resp = make_response(render_template('index.html',
-            roomData = itemData,
-            roomId = room_id,
-            itemId = item_id,
-            backgroundColor = lighten_color_and_return_hex(hex_to_rgb(itemData[2])),
-            userRatings = result,
-            averageRatings = result2,
-            leftLaneTitle = leftLaneTitle,
-            hideLink = hideRoomGenerationLink,
-            numberOfElementsHidden = numberOfElementsHidden))
-    resp.headers['Cache-Control'] = 'no-cache'"""
+@sortit.route('/')
+@sortit.route('/<path:path>')
+def render_item_room(path = ''):
     return make_response(render_template('angular-index.html'))
 
+@sortit.route('/stream')
+def stream():
+    tags = request.args.getlist('tags')
+    tags.sort()
+    return Response(event_stream(['userchannel:'+g.uuid, 'tagchannel:'+'+'.join(tags)]), mimetype="text/event-stream")
+
 @sortit.route("/_add_item", methods=['POST'])
-def add_item_for_user():
-    print "post form"
-    f = request.form
-    for key in f.keys():
-        for value in f.getlist(key):
-            print "key:",key," and value:",value
-    room_id = request.form.get("room_id", "root")
-    item_id = request.form.get("parentItemId", "0")
-    newItemID = request.form.get("item", "")
-    newItemTitle = request.form.get("title", "")
-    if newItemTitle == "" and newItemID == "":
-        print("Couldn't add new item. Not enough data")
-        return jsonify(result="error")
-    if newItemID == "":
-        #generate new item!
-        newItemTitle = request.form.get("title").strip()
-        print(newItemTitle)
-        if newItemTitle == "":
-            return jsonify(result = "error")
-        newItemID = add_item(newItemTitle, item_id)[0]
-    else:
-        if redis.zrank('user:'+g.uuid+':'+item_id,newItemID):
-            return jsonify(result = "error")
-    usersRatings = redis.zrevrange('user:'+g.uuid+':'+item_id, 0, -1)
-    usersRatings.append(newItemID)
-    update_ratings(usersRatings, item_id, g.uuid)
-    result = get_items([newItemID])
-    return get_right_lane()
+def add_existing_item_for_user():
+    postData = request.get_json()
+    tags = postData["tags"]
+    itemString = postData["item"]
+    itemIds = add_item_for_user('item:'+itemString, tags, g.uuid)
+    items = get_items(itemIds)
+    return jsonify(items = items, state='ready')
+
+@sortit.route("/_add_url", methods=['POST'])
+def add_new_item_for_user():
+    postData = request.get_json()
+    tags = postData["tags"]
+    url = postData["url"]
+    if re.match('(?:http|ftp|https)://', url):
+        if(fetch_url(url, tags, g.uuid)):
+            return jsonify(state='resolving')
+        return jsonify(state='error')
 
 @sortit.route("/_update_order", methods=['POST'])
-@sortit.route("/item/<item_id>/_update_order", methods=['POST'])
-@sortit.route("/item/<item_id>/room/<room_id>/_update_order", methods=['POST'])
 def update_order(room_id = "root", item_id = "0"):
-    itemList = request.form.getlist("items[]")
-    update_ratings(itemList, item_id, g.uuid)
+    jsonData = request.get_json()
+    items = jsonData['items']
+    tags = jsonData['tags']
+    items = ['item:'+s  for s in items]
+    update_ratings(items, tags, g.uuid)
     return jsonify(items = "success")
 
 @sortit.route("/_show_more_items")
@@ -109,67 +68,23 @@ def show_more_items(room_id = "root", item_id = "0"):
     results = get_items(items)
     return jsonify(items = results, left = itemsLeft)
 
-@sortit.route("/_get_left_lane_items")
-def get_left_lane():
-    numberOfItems = request.args.get("itemCount", 10)
-    item_id = request.args.get("parentItemId", "0")
-    room_id = request.args.get("roomId", "root")
-    if room_id != "root":
-        #left lane is someones personal sort
-        roomOwner = redis.get("item:"+item_id+":"+room_id)
-        items = redis.zrevrange("user:"+roomOwner+":"+item_id, 0, int(numberOfItems)-1)
-        itemsLeft = items_hidden("user:"+roomOwner+":"+item_id, numberOfItems)
-    else:
-        #left lane is average
-        items = redis.zrevrange("item:"+item_id+":average", 0, int(numberOfItems)-1)
-        itemsLeft = items_hidden("item:"+item_id+":average", numberOfItems)
-    results = get_items(items)
-    return jsonify(itemCount=numberOfItems, parentId=item_id, roomId=room_id, items = results, countHidden=itemsLeft)
+@sortit.route("/_get_average_items")
+def get_average_items():
+    tags = request.args.getlist('tags')
+    averageRatings = get_average_ratings(tags)
+    results = get_items(averageRatings)
+    return jsonify(items = results)
 
-@sortit.route("/_get_right_lane_items")
-def get_right_lane():
-    item_id = request.args.get("parentItemId", "0")
-    
-    #users personal ratings to lane on the right
-    usersRatings = get_users_ratings(g.uuid, item_id, -1)
-    numberOfUserRatings = len(usersRatings)
-
+@sortit.route("/_get_user_items")
+def get_user_items():
+    tags = request.args.getlist('tags')
+    usersRatings = get_users_ratings(g.uuid, tags)
     results = get_items(usersRatings)
-    return jsonify(itemCount=numberOfUserRatings, parentId=item_id, items = results)
-
-@sortit.route("/my_room")
-@sortit.route("/item/<item_id>/my_room")
-def redirect_to_my_room(item_id = "0"):
-    room_id = redis.get('user:'+g.uuid+':'+item_id+":room")
-    if room_id is None:
-        room_id = new_room(item_id, g.uuid)
-    return redirect(url_for('sortit.render_item_room', item_id=item_id, room_id=room_id), code=303)
-
-@sortit.route("/item/<item_id>/vote/<attribute>")
-def redirect_to_vote_item(item_id, attribute):
-    global ALLOWED_ATTRIBUTES
-    if not attribute in ALLOWED_ATTRIBUTES:
-        abort(404)
-    item = redis.hmget('item:'+ item_id, str(attribute)+'_id', attribute)
-    child_item = item[0]
-    if not child_item:
-        pipe = redis.pipeline()
-        child_item = add_item("Vote for item "+item_id+" "+attribute, -1, pipe)[0]
-        add_connection_between_items(item_id, child_item, attribute, pipe)
-        pipe.execute()
-    return redirect(url_for('sortit.render_item_room', item_id=child_item), code=303)
-
+    return jsonify(items = results)
 
 @sortit.route("/_search_items")
-def search_items(room_id = "root", item_id = "0"):
+def search_items():
     string = request.args.get("searchString", "", type=str).lower()
-    item_id = request.args.get("parentItemId", "0")
-
     string = string.replace('*','')
-    results = search_string(string, item_id)
+    results = search_string(string)
     return jsonify(results = results)
-
-if __name__ == '__main__':
-    app.debug = False
-    load_lua_scripts()
-    app.run()

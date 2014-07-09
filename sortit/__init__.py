@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from uuid import uuid4
-from flask import Flask, g, session
+from flask import Flask, g, session, Response
 from .redis_functions import redis, load_lua_scripts
 from .app import sortit
 from .globals import *
@@ -27,7 +27,7 @@ def create_app():
     app.config['REDIS_PORT'] = 6379
     app.config['REDIS_DB'] = 0
     app.config['REDIS_CHARSET'] = 'utf-8'
-    app.secret_key = '\x9aF\x80x\x8b\xcfH\xbc\xedg|\x06\xfa\x0e\xe6\xc7\x80~\x00\xf1\xd2%K2'
+    app.secret_key = 'put your own secret here'
     app.config.update(
         DEBUG=True,
         SECRET_KEY='Change this!'
