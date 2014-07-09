@@ -2,37 +2,31 @@
 SortIt-app
 ==========
 
-Rate things by draging and droping them! Deployed app can be tested here: http://granite.dy.fi/jafna/sortit
+Rate things by draging and droping them!
 
 Requirements
 ------------
 * Python (2.7)
 * Redis (2.6.0+ because SortIt uses Lua scripts. Notice that Ubuntu's packet manager ships with older)
-* Flask ( pip install Flask )
-* Flask-And-Redis ( pip install Flask-And-Redis )
-* Flask-Testing ( pip install Flask-Testing )
-* Flask-Script ( pip install Flask-Script)
-* Nose (pip install nose)
+* Flask
+* Flask-And-Redis
+* Flask-Testing
+* Flask-Script
+* Nose
+* Scrapy
+* Scrapy-Redis
 
 Run
 ===
 
-First load base data (contains small set of movielens data and a base category). Even with quite small dataset this will take ~10mins.
-Be aware that init runs flushall for redis instance!
-
-```
-$ python manage.py init
-```
-
-Run server
 ```
 $ python manage.py run
 ```
-Direct your browser to: 127.0.0.1:5000
+
+Direct your browser to: localhost:5000
 
 To-Do
 =====
 * Have recommendations for users
-* Users to have ability to paste URLs
-* Clean template/index.html
+* Some issues with URL pasting
 * More test coverage!
