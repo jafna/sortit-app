@@ -9,7 +9,7 @@ angular.module('SortIt.directives', ['SortIt.services'])
   return {
     templateUrl:'static/partials/list-items.html',
     restrict:'E',
-    scope:{items:'='},
+    scope:{items:'=', resolvingItems:'='},
     link:function(scope, element, attrs){
     }
   };
@@ -25,6 +25,15 @@ angular.module('SortIt.directives', ['SortIt.services'])
   };
 })
 
+.directive('listPendingItems', function(){
+  return {
+    templateUrl:'static/partials/list-pending-items.html',
+    restrict:'E',
+    scope:{items:'='},
+    link:function(scope, element, attrs){
+    }
+  };
+})
 
 .directive('searchBar', function(){
   return {

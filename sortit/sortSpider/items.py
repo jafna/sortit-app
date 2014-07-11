@@ -5,3 +5,5 @@ class SortItItem(Item):
     image_urls = Field()
     images = Field()
     url = Field()
+    given_url = Field()
+    response_url = Field()

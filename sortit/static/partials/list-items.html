@@ -1,11 +1,10 @@
-<span class="light-text" ng-hide="items.length">There seems to be nothing here. Start adding items from text field!</span>
 <ul ui-sortable="sortableOptions" ng-model="items" class="item-list" ng-controller="UserSortableController" id="sortable">
   <li ng-repeat="item in items" id="{{item.title}}">
   <div class="sort-item-container arrow-down" style="background-color:{{item.color}}; border-top-color:{{item.color}};">
-      <a href="{{item.url}}">{{item.title}}</a>
-      <div>
-        <img id="image" src="static/item_images/{{item.image}}"/>
-      </div>
+    <a href="{{item.url}}">{{item.title}}</a>
+    <div>
+      <img id="image" src="static/item_images/{{item.image}}"/>
     </div>
+  </div>
   </li>
 </ul>

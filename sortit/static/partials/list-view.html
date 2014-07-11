@@ -6,7 +6,9 @@
     <td rowspan="2">
       <div class="list-view">
         <div class="user-items-container">
+          <span class="light-text" ng-hide="userItems.length || resolvingItems.length">There seems to be nothing here. Start adding items from text field!</span>
           <list-items items="userItems"></list-items>
+          <list-pending-items items="resolvingItems"></list-pending-items>
         </div>
         <div class="color-gradient"></div>
         <list-static-items items="averageItems"></list-static-items>

@@ -1,18 +1,11 @@
 'use strict';
 
-function isURL(url) {
-  var strRegex = "^((https|http|ftp|rtsp|mms)?://)"
-  + "?(([0-9a-z_!~*'().&=+$%-]+: )?[0-9a-z_!~*'().&=+$%-]+@)?"
-  + "(([0-9]{1,3}\.){3}[0-9]{1,3}"
-  + "|"
-  + "([0-9a-z_!~*'()-]+\.)*"
-  + "([0-9a-z][0-9a-z-]{0,61})?[0-9a-z]\."
-  + "[a-z]{2,6})"
-  + "(:[0-9]{1,4})?"
-  + "((/?)|"
-  + "(/[0-9a-z_!~*'().;?:@&=+$,%#-]+)+/?)$";
-  var re=new RegExp(strRegex);
-  return re.test(url);
+function isURL(str) {
+  var pattern = /((([A-Za-z]{3,9}:(?:\/\/)?)(?:[\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+|(?:www\.|[\-;:&=\+\$,\w]+@)[A-Za-z0-9\.\-]+)((?:\/[\+~%\/\.\w\-]*)?\??(?:[\-\+=&;%@\.\w]*)#?(?:[\.\!\/\\\w]*))?)/g;
+  if(!pattern.test(str)) {
+    return false;
+  }
+  return true;
 }
 
 function getItemTitle(item){
@@ -22,19 +15,24 @@ function getItemTitle(item){
 /* Controllers */
 angular.module('SortIt.controllers', ['SortIt.services'])
 .controller('IndexController',['$rootScope','Item', '$routeParams', '$location', function($rootScope, Item, $routeParams, $location) {
+  /* All root scope variables used in this application */
   $rootScope.activeTags = $routeParams.tags === undefined ? [] : $routeParams.tags.split('+');
 
+  Item.users({tags:$rootScope.activeTags},function(data){
+    if(data.state==="success"){
+      $rootScope.userItems = data.items;
+    }
+  });
+
+  Item.average({tags:$rootScope.activeTags}, function(data){
+    if(data.state==="success"){
+      $rootScope.averageItems = data.items;
+    }
+  });
+
+  $rootScope.resolvingItems = [];
+
   $rootScope.$watchCollection('activeTags', function(newValue, oldValue){
-    Item.users({tags:newValue}, function(data){
-      if(data.result!=="error"){
-        $rootScope.userItems = data.items;
-      }
-    });
-    Item.average({tags:newValue}, function(data){
-      if(data.result!=="error"){
-        $rootScope.averageItems = data.items;
-      }
-    });
     $location.path('/'+newValue.join('+'));
   });
 
@@ -45,14 +43,17 @@ angular.module('SortIt.controllers', ['SortIt.services'])
     if(event.data.indexOf('item:')===0){
       var title = getItemTitle(event.data);
       Item.add({tags:$rootScope.activeTags, item:title}, function(data){
-        if(data.result!=="error"){
+        if(data.state==="success"){
           $rootScope.userItems = data.items;
+          $rootScope.resolvingItems.pop();
         }
       });
     }else if(event.data === 'averages'){
       Item.average({tags:$rootScope.activeTags}, function(data){
         $rootScope.averageItems = data.items;
       });
+    }else if(event.data === 'error'){
+      $rootScope.resolvingItems.pop();
     }
     if(event.id === "CLOSE"){
       source.close();
@@ -60,6 +61,8 @@ angular.module('SortIt.controllers', ['SortIt.services'])
   };
 
 }])
+
+
 .controller('SearchBarController', ['$rootScope', '$scope', 'Search', 'Item', function($rootScope, $scope, Search, Item){
   $scope.autocompleteOptions = {
     options:{
@@ -82,7 +85,7 @@ angular.module('SortIt.controllers', ['SortIt.services'])
       select: function(event, ui){
         event.preventDefault();
         Item.add({tags:$rootScope.activeTags, item:ui.item.value},function(data){
-          if(data.result!=="error"){
+          if(data.state==="success"){
             $rootScope.userItems = data.items;
           }
         });
@@ -92,11 +95,18 @@ angular.module('SortIt.controllers', ['SortIt.services'])
     },
     methods:{}
   };
+
   $scope.submit = function(){
     var text = $scope.searchInput;
     if(text){
       if(isURL(text)){
-        Item.save({tags:$rootScope.activeTags,url:text});
+        Item.save({tags:$rootScope.activeTags,url:text}, function(data){
+          if(data.state === "success"){
+            $rootScope.userItems = data.items;
+          }else if(data.state === "resolving"){
+            $rootScope.resolvingItems.push({title:'resolving'});
+          }
+        });
       }else if(text.indexOf('#')===0){
         $rootScope.activeTags.push(text.slice(1));
       }

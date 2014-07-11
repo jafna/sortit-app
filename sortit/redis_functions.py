@@ -23,13 +23,16 @@ def add_item_for_user(item, categories, user):
     update_ratings(userItems, categories, user)
     return userItems
 
-def fetch_url(url, categories, user):
-    if redis.exists('url:'+url):
-        return False
+def fetch_url(url, categories, user, tags):
+    itemTitle = redis.get('url:'+url)
+    if itemTitle:
+        return itemTitle
     else:
+        tags.sort()
+        redis.set('url_to_user_channel:'+url,
+                'user_channel:'+user+':tags:'+'+'.join(tags))
         redis.lpush('redisSpider:start_urls', url)
-        redis.set('url_user:'+url, user)
-        return True
+        return None
 
 def search_string(string):
     results = []
