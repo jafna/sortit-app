@@ -2,7 +2,7 @@
 SortIt-app
 ==========
 
-Rate things by draging and droping them! Deployed app can be tested here: http://granite.dy.fi/jafna/sortit
+Rate things by draging and droping them!
 
 Requirements
 ------------
