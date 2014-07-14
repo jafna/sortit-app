@@ -92,7 +92,7 @@ class RedisspiderSpider(RedisSpider):
         return get_first(urlList)
 
     def parseItemImage(self, selector):
-        print selector.xpath('//img[contains(@src,"base64")/@src]').extract()
+        #print selector.xpath('//img[contains(@src,"base64")/@src]').extract()
         imgList = [
                 selector.xpath('//meta[@property="og:image"]/@content').extract(),
                 selector.xpath('//*[@itemscope=""]//*[@itemprop="image"]/@src').extract(),

@@ -1,28 +1,8 @@
 'use strict';
-
-function isURL(str) {
-  var pattern = /((([A-Za-z]{3,9}:(?:\/\/)?)(?:[\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+|(?:www\.|[\-;:&=\+\$,\w]+@)[A-Za-z0-9\.\-]+)((?:\/[\+~%\/\.\w\-]*)?\??(?:[\-\+=&;%@\.\w]*)#?(?:[\.\!\/\\\w]*))?)/g;
-  if(!pattern.test(str)) {
-    return false;
-  }
-  return true;
-}
-
-function getItemTitle(item){
-  return item.slice(5);
-}
-
 /* Controllers */
 angular.module('SortIt.controllers', ['SortIt.services'])
-.controller('IndexController',['$rootScope','Item', '$routeParams', '$location', function($rootScope, Item, $routeParams, $location) {
-  /* All root scope variables used in this application */
+.controller('IndexController',['$rootScope', '$routeParams', 'Item', 'EventSource', 'Utils', function($rootScope, $routeParams, Item, EventSource, Utils) {
   $rootScope.activeTags = $routeParams.tags === undefined ? [] : $routeParams.tags.split('+');
-
-  Item.users({tags:$rootScope.activeTags},function(data){
-    if(data.state==="success"){
-      $rootScope.userItems = data.items;
-    }
-  });
 
   Item.average({tags:$rootScope.activeTags}, function(data){
     if(data.state==="success"){
@@ -30,57 +10,31 @@ angular.module('SortIt.controllers', ['SortIt.services'])
     }
   });
 
-  $rootScope.resolvingItems = [];
-
-  $rootScope.$watchCollection('activeTags', function(newValue, oldValue){
-    $location.path('/'+newValue.join('+'));
+  Item.users({tags:$rootScope.activeTags},function(data){
+    if(data.state==="success"){
+      $rootScope.userItems = data.items;
+    }
   });
-
-  /* Add listener for Server Sent Events  */
-  var source = new EventSource('/stream?tags='+$rootScope.activeTags.join('&tags='));
-  source.onmessage = function (event) {
-    /* sent url has been fetched, so get the item with its title  */
-    if(event.data.indexOf('item:')===0){
-      var title = getItemTitle(event.data);
-      Item.add({tags:$rootScope.activeTags, item:title}, function(data){
-        if(data.state==="success"){
-          $rootScope.userItems = data.items;
-          $rootScope.resolvingItems.pop();
-        }
-      });
-    }else if(event.data === 'averages'){
-      Item.average({tags:$rootScope.activeTags}, function(data){
-        $rootScope.averageItems = data.items;
-      });
-    }else if(event.data === 'error'){
-      $rootScope.resolvingItems.pop();
-    }
-    if(event.id === "CLOSE"){
-      source.close();
-    }
-  };
-
+  EventSource.openConnection($rootScope.activeTags);
 }])
-
-
-.controller('SearchBarController', ['$rootScope', '$scope', 'Search', 'Item', function($rootScope, $scope, Search, Item){
+.controller('SearchBarController', ['$rootScope', '$scope', 'Search', 'Item', 'Utils', function($rootScope, $scope, Search, Item, Utils){
   $scope.autocompleteOptions = {
     options:{
       source: function (request, response) {
-        Search.get({searchString:$scope.searchInput, parentItemId:'0'}, function(data){
+        Search.get({searchString:$scope.searchInput}, function(data){
           var result = [];
           angular.forEach(data.results, function(value, key){
             /* every response string has 'item:' at front*/
-            var sliced = getItemTitle(value);
+            var sliced = Utils.getItemTitle(value);
             result.push(sliced);
           });
           response(result);
         });
       },
       minLength: 1,
-      focus: function(event, ui){
+      focus: function(event){
         event.preventDefault();
-        $scope.searchInput = ui.item.label;
+        /*$scope.searchInput = ui.item.label;*/
       },
       select: function(event, ui){
         event.preventDefault();
@@ -89,7 +43,6 @@ angular.module('SortIt.controllers', ['SortIt.services'])
             $rootScope.userItems = data.items;
           }
         });
-        $scope.searchInput = "";
         return false;
       }
     },
@@ -99,7 +52,7 @@ angular.module('SortIt.controllers', ['SortIt.services'])
   $scope.submit = function(){
     var text = $scope.searchInput;
     if(text){
-      if(isURL(text)){
+      if(Utils.isURL(text)){
         Item.save({tags:$rootScope.activeTags,url:text}, function(data){
           if(data.state === "success"){
             $rootScope.userItems = data.items;
@@ -116,11 +69,23 @@ angular.module('SortIt.controllers', ['SortIt.services'])
 }])
 .controller('UserSortableController', ['$rootScope', '$scope', 'Item', function($rootScope, $scope, Item){
   $scope.sortableOptions = {
-    tolerance:'pointer',
-    stop: function(e, ui) {
+    connectWith: '.connected-list',
+    placeholder: 'hilight',
+    tolerance: 'pointer',
+    forcePlaceholderSize: true,
+    start:function(){
+      $rootScope.$apply(function(scope){
+        scope.userDragging = true;
+      });
+    },
+    stop: function() {
       var items = $('#sortable').sortable('toArray');
       Item.update({tags:$rootScope.activeTags,items:items});
-    }
+      $rootScope.$apply(function(scope){
+        scope.userDragging = false;
+      });
+    },
+
   };
 }]);
 

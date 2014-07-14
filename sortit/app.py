@@ -21,6 +21,7 @@ def stream():
     tags = request.args.getlist('tags')
     tags.sort()
     tagsStr = '+'.join(tags)
+    print 'user_channel:'+g.uuid+':tags:'+tagsStr
     return Response(event_stream(['user_channel:'+g.uuid+':tags:'+tagsStr,
         'tagchannel:'+tagsStr]), mimetype="text/event-stream")
 

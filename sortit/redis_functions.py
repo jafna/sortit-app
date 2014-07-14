@@ -58,11 +58,12 @@ def get_items(items):
 #   Updates users ordered list AND average
 ###
 def update_ratings(listOfItems, categories, user):
+    print listOfItems
     categories.sort()
     pipe = redis.pipeline()
     counter = 0
     tags = '+'.join(categories)
-    pipe.delete(tags+":user:"+user)
+    pipe.delete('tags:'+tags+":user:"+user)
     for item in reversed(listOfItems):
         counter+=1
         pipe.zadd('tags:'+tags+':user:'+user, counter, item)

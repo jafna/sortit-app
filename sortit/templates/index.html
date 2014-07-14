@@ -10,7 +10,7 @@
   <script src="{{ url_for('static', filename='js/lib/lodash.min.js') }}"></script>
   <script src="{{ url_for('static', filename='jquery/js/jquery-1.10.2.js') }}"></script>
   <script src="{{ url_for('static', filename='jquery/js/jquery-ui-1.10.4.custom.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/lib/angular.min.js') }}"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.19/angular.min.js"></script>
   <script src="{{ url_for('static', filename='js/lib/autocomplete.js') }}"></script>
   <script src="{{ url_for('static', filename='js/lib/angular-resource.min.js') }}"></script>
   <script src="{{ url_for('static', filename='js/lib/angular-route.min.js') }}"></script>
@@ -25,15 +25,19 @@
 <body>
 <div class="top-nav-container">
   <div class="topbox">
-  <img src="{{url_for('static', filename='logo.png')}}"/>
-</div>
+    <img src="{{url_for('static', filename='logo.png')}}"/>
+  </div>
   <div class="topbox">
-    <span>Alpha version: Domains restricted to imdb.com, ebay.com, ratebeer.com and
-      amazon.com. Db drops may happen.</span><br/>
-    <search-bar></search-bar>
+    <div class="trash-container" ng-class="{'showtrash':userDragging}">
+      <trash></trash>
+    </div>
+    <div class="search-container">
+      <span>Alpha version: Domains restricted to imdb.com, ebay.com, ratebeer.com and
+        amazon.com.</span><br/>
+      <search-bar></search-bar>
+    </div>
   </div>
 </div>
-
 <div class="block-container" ng-view></div>
 </body>
 </html>

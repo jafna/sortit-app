@@ -5,12 +5,13 @@
 
 angular.module('SortIt.directives', ['SortIt.services'])
 
-.directive('listItems', function(){
+.directive('listItems', function($rootScope){
   return {
     templateUrl:'static/partials/list-items.html',
     restrict:'E',
-    scope:{items:'=', resolvingItems:'='},
-    link:function(scope, element, attrs){
+    scope:{items:'=', pendingItems:'='},
+    link:function(){
+      $rootScope.resolvingItems = [];
     }
   };
 })
@@ -19,19 +20,7 @@ angular.module('SortIt.directives', ['SortIt.services'])
   return {
     templateUrl:'static/partials/list-static-items.html',
     restrict:'E',
-    scope:{items:'='},
-    link:function(scope, element, attrs){
-    }
-  };
-})
-
-.directive('listPendingItems', function(){
-  return {
-    templateUrl:'static/partials/list-pending-items.html',
-    restrict:'E',
-    scope:{items:'='},
-    link:function(scope, element, attrs){
-    }
+    scope:{items:'='}
   };
 })
 
@@ -40,20 +29,38 @@ angular.module('SortIt.directives', ['SortIt.services'])
     templateUrl:'static/partials/search-bar.html',
     restrict:'E',
     scope:true,
-    link:function(scope, element, attrs){
+    link:function(scope){
+      scope.trash = [];
     }
   };
 })
 
-.directive('listActiveTags', ['$rootScope', function($rootScope){
+.directive('trash', ['$rootScope', function($rootScope){
+  return {
+    templateUrl:'static/partials/trash.html',
+    restrict:'E',
+    scope:true,
+    link:function(){
+      $rootScope.trash = [];
+    }
+  };
+}])
+
+.directive('listActiveTags', ['$rootScope', '$location', 'EventSource', function($rootScope, $location, EventSource){
   return {
     templateUrl:'static/partials/list-active-tags.html',
     restrict:'E',
     scope:true,
-    link:function(scope,element,attrs){
+    link:function(scope){
       scope.removeTag = function(tag){
         $rootScope.activeTags = _.without($rootScope.activeTags, tag);
       };
+      $rootScope.$watchCollection('activeTags', function(newValue, oldValue){
+        if(!_.isEqual(newValue,oldValue)){
+          EventSource.closeConnection();
+          $location.path('/'+newValue.join('+'));
+        }
+      });
     }
-  }
+  };
 }]);
