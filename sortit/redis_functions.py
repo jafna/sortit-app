@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import re
+import re, itertools, time
 from .globals import *
 from .utils import *
 from flask.ext.redis import Redis
@@ -54,11 +54,22 @@ def get_items(items):
         pipe.hgetall(item)
     return pipe.execute()
 
+def update_activities(categories):
+    pipe = redis.pipeline()
+    #maybe remove possibility to sort in root?
+    if len(categories) == 0:
+        return
+    for i in xrange(1, len(categories)):
+        for x in itertools.combinations(categories, i):
+            pipe.zadd('tags:'+'+'.join(x)+':activity', time.time(), '+'.join(categories))
+    #root contains every activity
+    pipe.zadd('tags::activity', time.time(), '+'.join(categories))
+    pipe.execute()
+
 ###
 #   Updates users ordered list AND average
 ###
 def update_ratings(listOfItems, categories, user):
-    print listOfItems
     categories.sort()
     pipe = redis.pipeline()
     counter = 0
@@ -74,9 +85,15 @@ def update_ratings(listOfItems, categories, user):
     #if average has changed, notify possible active clients to update average!
     if(newAverage!=oldAverage):
         redis.publish('tagchannel:'+tags,'averages')
+        update_activities(categories)
+
 
 def redis_update_item_average(userid, tags):
     REDIS_LUA_CALCULATE_AVERAGE_ORDER(keys=["tags:"+tags+":average", "tags:"+tags+":user:"+userid])
+
+def get_activity(categories, limit=-1):
+    categories.sort()
+    return redis.zrevrange('tags:'+'+'.join(categories)+':activity', 0, limit)
 
 def get_average_ratings(categories, limit=-1):
     categories.sort()

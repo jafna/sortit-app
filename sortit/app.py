@@ -74,6 +74,17 @@ def get_user_items():
     results = get_items(usersRatings)
     return jsonify(items = results, state="success")
 
+@sortit.route("/_get_active_channels")
+def get_active_channels():
+    tags = request.args.getlist('tags')
+    active_channels = get_activity(tags, 3)
+    results = []
+    for string in active_channels:
+        categories = string.split("+")
+        avg = get_average_ratings(categories, 2)
+        results.append({'tags':categories, 'items':get_items(avg)})
+    return jsonify(channels = results, state="success")
+
 @sortit.route("/_search_items")
 def search_items():
     string = request.args.get("searchString", "", type=str).lower()

@@ -4,10 +4,15 @@
 }
 
 body {
-  font-family:"ClearSans", sans-serif;
-  text-align:center;
+  font-family: "ClearSans", sans-serif;
+  text-align: center;
+  text-decoration: none;
 }
-
+h2{
+  font-size:25px;
+  margin-bottom: 20px;
+  margin-top: 30px;
+}
 .top-nav-container {
   padding:5px;
   border-bottom: 1px solid;
@@ -127,7 +132,7 @@ body {
   text-align:center;
 }
 
-.sort-item-container a {
+.sort-item-container .title {
   color:white;
   background-color:rgba(0,0,0,0.7);
   display: inherit;
@@ -147,7 +152,18 @@ body {
 .item-image-container {
   text-align:left;
 }
-
+.channels-container{
+  max-width:980px;
+  margin-left:auto;
+  margin-right:auto;
+}
+.channel-container{
+  margin:10px;
+  padding:5px;
+  border:1px solid;
+  color:gray;
+  display:inline-block;
+}
 .item-list {
   list-style:none;
   display:inline-block;

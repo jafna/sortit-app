@@ -15,8 +15,16 @@ angular.module('SortIt.controllers', ['SortIt.services'])
       $rootScope.userItems = data.items;
     }
   });
+
+  Item.channels({tags:$rootScope.activeTags}, function(data){
+    if(data.state==="success"){
+      $rootScope.channels = data.channels;
+    }
+  });
+
   EventSource.openConnection($rootScope.activeTags);
 }])
+
 .controller('SearchBarController', ['$rootScope', '$scope', 'Search', 'Item', 'Utils', function($rootScope, $scope, Search, Item, Utils){
   $scope.autocompleteOptions = {
     options:{
@@ -67,6 +75,7 @@ angular.module('SortIt.controllers', ['SortIt.services'])
     }
   };
 }])
+
 .controller('UserSortableController', ['$rootScope', '$scope', 'Item', function($rootScope, $scope, Item){
   $scope.sortableOptions = {
     connectWith: '.connected-list',

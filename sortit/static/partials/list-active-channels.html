@@ -1,0 +1,20 @@
+<a href ng-click="showChannel(channel.tags)" ng-repeat="channel in $root.channels">
+  <div class="channel-container">
+    <h3>Top average in tags:
+      <div ng-repeat="tag in channel.tags" class="tag-container">
+        #{{tag}}
+      </div>
+    </h3>
+
+    <ul class="static-list">
+      <li ng-repeat="item in channel.items">
+      <div class="sort-item-container arrow-up">
+        <span class="title">{{item.title}}</span>
+        <div class="item-image-container">
+          <img id="image" ng-src="static/item_images/{{item.image}}"/>
+        </div>
+      </div>
+      </li>
+    </ul>
+  </div>
+</a>

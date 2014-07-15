@@ -24,6 +24,20 @@ angular.module('SortIt.directives', ['SortIt.services'])
   };
 })
 
+.directive('listActiveChannels', ['$rootScope', function($rootScope){
+  return {
+    templateUrl:'static/partials/list-active-channels.html',
+    restrict:'E',
+    scope:true,
+    link:function(scope){
+      $rootScope.channels = [];
+      scope.showChannel = function(tags){
+        $rootScope.activeTags = tags;
+      };
+    }
+  };
+}])
+
 .directive('searchBar', function(){
   return {
     templateUrl:'static/partials/search-bar.html',

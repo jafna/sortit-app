@@ -2,7 +2,7 @@
   connected-list" ng-controller="UserSortableController" id="sortable">
   <li ng-repeat="item in items" id="{{item.title}}">
   <div class="sort-item-container arrow-down" style="background-color:{{item.color}}; border-top-color:{{item.color}};">
-    <a href="{{item.url}}">{{item.title}}</a>
+    <a href="{{item.url}}" class="title">{{item.title}}</a>
     <div class="item-image-container">
       <img id="image" ng-src="static/item_images/{{item.image}}"/>
     </div>
