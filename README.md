@@ -24,9 +24,3 @@ $ python manage.py run
 ```
 
 Direct your browser to: localhost:5000
-
-To-Do
-=====
-* Have recommendations for users
-* Some issues with URL pasting
-* More test coverage!
