@@ -104,7 +104,7 @@ class RedisspiderSpider(RedisSpider):
         domain = getDomain(url)
         alternateUrl = selector.xpath('//link[@rel="alternate"]/@href').extract()
         # when on amazon, visit alternate link for cleaner data
-        if domain=='amazonkakka' and alternateUrl:
+        if domain=='amazondisabled' and alternateUrl:
             return Request(alternateUrl)
         return None
     # Spider main method

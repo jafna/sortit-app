@@ -3,11 +3,8 @@ import gevent.monkey
 gevent.monkey.patch_all()
 
 import re
-from flask import Blueprint, url_for, render_template, jsonify, request, g, make_response, redirect, abort, Response
-from .utils import *
-from .redis_functions import *
-from .globals import *
-import ServerSentEvent
+from flask import Blueprint, render_template, jsonify, request, g, make_response, Response
+import redis_functions
 
 sortit = Blueprint('sortit', __name__, template_folder='templates')
 
@@ -21,13 +18,12 @@ def stream():
     tags = request.args.getlist('tags')
     tags.sort()
     tagsStr = '+'.join(tags)
-    print 'user_channel:'+g.uuid+':tags:'+tagsStr
-    return Response(event_stream(['user_channel:'+g.uuid+':tags:'+tagsStr,
+    return Response(redis_functions.event_stream(['user_channel:'+g.uuid+':tags:'+tagsStr,
         'tagchannel:'+tagsStr]), mimetype="text/event-stream")
 
 def add_item_for_user_and_return_json(user, tags, itemTitle):
-    itemIds = add_item_for_user('item:'+itemTitle, tags, user)
-    items = get_items(itemIds)
+    itemIds = redis_functions.add_item_for_user('item:'+itemTitle, tags, user)
+    items = redis_functions.get_items(itemIds)
     return jsonify(items = items, state="success")
 
 @sortit.route("/_add_item", methods=['POST'])
@@ -43,7 +39,7 @@ def add_new_item_for_user():
     tags = postData["tags"]
     url = postData["url"]
     if re.match('(?:http|ftp|https)://', url):
-        itemTitle = fetch_url(url, tags, g.uuid, tags)
+        itemTitle = redis_functions.fetch_url(url, tags, g.uuid, tags)
         if itemTitle:
             return add_item_for_user_and_return_json(g.uuid, tags,
                     itemTitle)
@@ -57,37 +53,38 @@ def update_order(room_id = "root", item_id = "0"):
     items = jsonData['items']
     tags = jsonData['tags']
     items = ['item:'+s  for s in items]
-    update_ratings(items, tags, g.uuid)
+    redis_functions.update_ratings(items, tags, g.uuid)
     return jsonify(state = "success")
 
 @sortit.route("/_get_average_items")
 def get_average_items():
     tags = request.args.getlist('tags')
-    averageRatings = get_average_ratings(tags)
-    results = get_items(averageRatings)
+    averageRatings = redis_functions.get_average_ratings(tags)
+    results = redis_functions.get_items(averageRatings)
     return jsonify(items = results, state="success")
 
 @sortit.route("/_get_user_items")
 def get_user_items():
     tags = request.args.getlist('tags')
-    usersRatings = get_users_ratings(g.uuid, tags)
-    results = get_items(usersRatings)
+    usersRatings = redis_functions.get_users_ratings(g.uuid, tags)
+    results = redis_functions.get_items(usersRatings)
     return jsonify(items = results, state="success")
 
 @sortit.route("/_get_active_channels")
 def get_active_channels():
     tags = request.args.getlist('tags')
-    active_channels = get_activity(tags, 3)
+    active_channels = redis_functions.get_activity(tags, 3)
     results = []
     for string in active_channels:
         categories = string.split("+")
-        avg = get_average_ratings(categories, 2)
-        results.append({'tags':categories, 'items':get_items(avg)})
+        avg = redis_functions.get_average_ratings(categories, 2)
+        results.append({'tags':categories, 'items':redis_functions.get_items(avg)})
     return jsonify(channels = results, state="success")
 
 @sortit.route("/_search_items")
 def search_items():
     string = request.args.get("searchString", "", type=str).lower()
     string = string.replace('*','')
-    results = search_string(string)
+    results = redis_functions.search_string(string)
     return jsonify(results = results)
+

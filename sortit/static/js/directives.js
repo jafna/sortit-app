@@ -71,7 +71,6 @@ angular.module('SortIt.directives', ['SortIt.services'])
       };
       $rootScope.$watchCollection('activeTags', function(newValue, oldValue){
         if(!_.isEqual(newValue,oldValue)){
-          EventSource.closeConnection();
           $location.path('/'+newValue.join('+'));
         }
       });

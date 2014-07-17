@@ -21,14 +21,11 @@
   </tr>
 </table>
 <div ng-show="$root.channels.length" class="channels-container">
-  <h2 ng-show="$root.activeTags.length">
+  <h2>
     Latest activity under
     <div ng-repeat="tag in $root.activeTags" class="tag-container">
       #{{tag}}
     </div>
-  </h2>
-  <h2 ng-hide="$root.activeTags.length">
-    Latest activity in SortIt
   </h2>
   <list-active-channels></list-active-channels>
 <div>

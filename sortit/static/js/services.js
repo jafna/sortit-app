@@ -45,7 +45,10 @@ angular.module('SortIt.services', ['ngResource'])
 //Service that handles SSE connection between server and browser
 .service('EventSource', ['$rootScope', 'Item', 'Utils', function($rootScope, Item, Utils){
 
-  this.openConnection = function(tags){
+  this.updateConnection = function(tags){
+    if($rootScope.events){
+      $rootScope.events.close();
+    }
     /* Add listener for Server Sent Events  */
     $rootScope.events = new EventSource('/stream?tags='+tags.join('&tags='));
     $rootScope.events.onmessage = function (event) {
@@ -69,9 +72,5 @@ angular.module('SortIt.services', ['ngResource'])
         $rootScope.events.close();
       }
     };
-  };
-
-  this.closeConnection = function(){
-    $rootScope.events.close();
   };
 }]);

@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 import re, itertools, time
-from .globals import *
-from .utils import *
 from flask.ext.redis import Redis
+import globals
 
 redis = Redis()
 
@@ -40,7 +39,7 @@ def search_string(string):
     for i,word in enumerate(words):
         if(len(word)>0):
             searchKey = "word:"+word+"*"
-            wordResults = REDIS_LUA_SEARCH_ITEM(keys=[searchKey])
+            wordResults = globals.REDIS_LUA_SEARCH_ITEM(keys=[searchKey])
             if i>0:
                 #intersect results if many words
                 results = [val for val in results if val in set(wordResults)]
@@ -89,7 +88,7 @@ def update_ratings(listOfItems, categories, user):
 
 
 def redis_update_item_average(userid, tags):
-    REDIS_LUA_CALCULATE_AVERAGE_ORDER(keys=["tags:"+tags+":average", "tags:"+tags+":user:"+userid])
+    globals.REDIS_LUA_CALCULATE_AVERAGE_ORDER(keys=["tags:"+tags+":average", "tags:"+tags+":user:"+userid])
 
 def get_activity(categories, limit=-1):
     categories.sort()
@@ -142,9 +141,6 @@ def load_lua_scripts():
             redis.call('zunionstore', KEYS[1], 2, KEYS[1], KEYS[2])
         end
     """
-    global REDIS_LUA_SEARCH_ITEM
-    global REDIS_LUA_CALCULATE_AVERAGE_ORDER
-
-    REDIS_LUA_SEARCH_ITEM = redis.register_script(searchWordLuaScript)
-    REDIS_LUA_CALCULATE_AVERAGE_ORDER = redis.register_script(updateAverageWithSteps)
+    globals.REDIS_LUA_SEARCH_ITEM = redis.register_script(searchWordLuaScript)
+    globals.REDIS_LUA_CALCULATE_AVERAGE_ORDER = redis.register_script(updateAverageWithSteps)
 

@@ -4,13 +4,13 @@ angular.module('SortIt', ['ngRoute', 'SortIt.directives', 'SortIt.services', 'So
 .config(['$routeProvider', '$locationProvider',
         function($routeProvider, $locationProvider) {
           $routeProvider
-          .when('/', {
-            templateUrl:'static/partials/list-view.html',
-            controller:'IndexController'
-          })
           .when('/:tags', {
             templateUrl: 'static/partials/list-view.html',
-            controller: 'IndexController'
+            controller: 'ViewController'
+          })
+          .when('/', {
+            templateUrl:'static/partials/index-view.html',
+            controller:'IndexController'
           })
           .otherwise({
             redirectTo: '/'

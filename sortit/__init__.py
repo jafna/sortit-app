@@ -3,9 +3,8 @@ from uuid import uuid4
 from flask import Flask, g, session, Response
 from .redis_functions import redis, load_lua_scripts
 from .app import sortit
-from .globals import *
 
-DEFAULT_BLUEPRINTS = [sortit]
+import globals
 
 # Making it easy to add deferred request callbacks
 def after_this_request(f):
@@ -22,6 +21,9 @@ def register_blueprints(app, blueprints):
         app.register_blueprint(blueprint)
 
 def create_app():
+    globals.init()
+    globals.DEFAULT_BLUEPRINTS = [sortit]
+
     app = Flask(__name__)
     app.config['REDIS_HOST'] = 'localhost'
     app.config['REDIS_PORT'] = 6379
@@ -34,7 +36,7 @@ def create_app():
     )
 
     register_extensions(app)
-    register_blueprints(app, DEFAULT_BLUEPRINTS)
+    register_blueprints(app, globals.DEFAULT_BLUEPRINTS)
     load_lua_scripts()
 
     @app.after_request

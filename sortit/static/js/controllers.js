@@ -1,8 +1,19 @@
 'use strict';
 /* Controllers */
 angular.module('SortIt.controllers', ['SortIt.services'])
-.controller('IndexController',['$rootScope', '$routeParams', 'Item', 'EventSource', 'Utils', function($rootScope, $routeParams, Item, EventSource, Utils) {
-  $rootScope.activeTags = $routeParams.tags === undefined ? [] : $routeParams.tags.split('+');
+.controller('IndexController', [ '$rootScope', 'Item', 'EventSource', function($rootScope, Item, EventSource){
+  $rootScope.activeTags = [];
+
+  Item.channels({tags:$rootScope.activeTags}, function(data){
+    if(data.state==="success"){
+      $rootScope.channels = data.channels;
+    }
+  });
+
+  EventSource.updateConnection($rootScope.activeTags);
+}])
+.controller('ViewController',['$rootScope', '$routeParams', 'Item', 'EventSource', function($rootScope, $routeParams, Item, EventSource) {
+  $rootScope.activeTags = $routeParams.tags.split('+');
 
   Item.average({tags:$rootScope.activeTags}, function(data){
     if(data.state==="success"){
@@ -22,7 +33,7 @@ angular.module('SortIt.controllers', ['SortIt.services'])
     }
   });
 
-  EventSource.openConnection($rootScope.activeTags);
+  EventSource.updateConnection($rootScope.activeTags);
 }])
 
 .controller('SearchBarController', ['$rootScope', '$scope', 'Search', 'Item', 'Utils', function($rootScope, $scope, Search, Item, Utils){
@@ -51,6 +62,9 @@ angular.module('SortIt.controllers', ['SortIt.services'])
             $rootScope.userItems = data.items;
           }
         });
+        $rootScope.$apply(function(scope){
+          scope.searchInput = "";
+        });
         return false;
       }
     },
@@ -58,20 +72,27 @@ angular.module('SortIt.controllers', ['SortIt.services'])
   };
 
   $scope.submit = function(){
-    var text = $scope.searchInput;
-    if(text){
-      if(Utils.isURL(text)){
-        Item.save({tags:$rootScope.activeTags,url:text}, function(data){
-          if(data.state === "success"){
-            $rootScope.userItems = data.items;
-          }else if(data.state === "resolving"){
-            $rootScope.resolvingItems.push({title:'resolving'});
-          }
-        });
-      }else if(text.indexOf('#')===0){
-        $rootScope.activeTags.push(text.slice(1));
+    var responseFunction = function(data){
+      if(data.state === "success"){
+        $rootScope.userItems = data.items;
+      }else if(data.state === "resolving"){
+        $rootScope.resolvingItems.push({title:'resolving'});
       }
-      $scope.searchInput = "";
+    };
+    var string = $scope.searchInput, i, text;
+    if(string){
+      var queries = string.split(" ");
+      for(i = 0; i<queries.length; i++){
+        text = queries[i];
+        if(Utils.isURL(text)){
+          Item.save({tags:$rootScope.activeTags,url:text}, responseFunction);
+        }else if(text.indexOf('#')===0){
+          $rootScope.activeTags.push(text.slice(1));
+        }
+      }
+      $rootScope.$apply(function(scope){
+        scope.searchInput = "";
+      });
     }
   };
 }])

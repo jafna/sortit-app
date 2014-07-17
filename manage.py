@@ -1,14 +1,12 @@
 # -*- coding: utf-8 -*-
 
 from flask.ext.script import Manager
-
 from sortit import create_app
 from sortit.redis_functions import redis
-from sortit.globals import *
-
 from gevent.wsgi import WSGIServer
 
 import werkzeug.serving
+import sortit.globals
 
 app = create_app()
 manager = Manager(app)
