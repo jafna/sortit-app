@@ -10,9 +10,8 @@
   add it to your sort.
   </pre>
 </div>
-<div ng-show="$root.channels.length" class="channels-container">
-  <h2>
-    Latest activity
-  </h2>
-  <list-active-channels></list-active-channels>
-<div>
+<h2>
+  Latest activity
+</h2>
+<list-active-channels tags="userData.activeTags"></list-active-channels>
+

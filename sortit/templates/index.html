@@ -22,9 +22,9 @@
   <script src="{{ url_for('static', filename='js/directives.js') }}"></script>
   <base href="/">
 </head>
-<body>
+<body ng-controller="MainController">
 <div class="top-nav-container">
-  <div class="topbox">
+  <div class="logobox">
     <a href="/">
       <img src="{{url_for('static', filename='logo.png')}}"/>
     </a>
@@ -34,9 +34,9 @@
       <trash></trash>
     </div>
     <div class="search-container">
-      <span>Alpha version: Domains restricted to imdb.com, ebay.com, ratebeer.com and
+      <span class="small-text light-text">Alpha version: Domains restricted to imdb.com, ebay.com, ratebeer.com and
         amazon.com.</span><br/>
-      <search-bar></search-bar>
+      <search-bar user-data="userData"></search-bar>
     </div>
   </div>
 </div>

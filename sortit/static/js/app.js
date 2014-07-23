@@ -6,11 +6,11 @@ angular.module('SortIt', ['ngRoute', 'SortIt.directives', 'SortIt.services', 'So
           $routeProvider
           .when('/:tags', {
             templateUrl: 'static/partials/list-view.html',
-            controller: 'ViewController'
+            controller: 'TagViewController'
           })
           .when('/', {
             templateUrl:'static/partials/index-view.html',
-            controller:'IndexController'
+            controller:'IndexViewController'
           })
           .otherwise({
             redirectTo: '/'

@@ -1,0 +1,24 @@
+<table class="list-table">
+  <tr>
+    <td class="text-container">
+      <div class="light-text vertical">My sort</div>
+    </td>
+    <td rowspan="2">
+      <div class="list-view">
+        <div class="user-items-container">
+          <span class="light-text" ng-hide="userData.userItems.length || userData.resolvingItems.length">There seems to be nothing here. Start adding items from text field!</span>
+          <list-items items="userData.userItems" pending-items="userData.resolvingItems"></list-items>
+        </div>
+        <div class="color-gradient"></div>
+        <list-static-items items="userData.averageItems"></list-static-items>
+      </div>
+    </td>
+  </tr>
+  <tr>
+    <td class="text-container">
+      <div class="light-text vertical">Average</div>
+    </td>
+  </tr>
+</table>
+
+

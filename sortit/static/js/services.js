@@ -15,6 +15,15 @@ angular.module('SortIt.services', ['ngResource'])
   });
 })
 
+.factory('UserData', function(){
+  return { activeTags:[],
+            userItems:[],
+         averageItems:[],
+         pendingItems:[],
+             channels:[],
+             dragging:false};
+})
+
 .factory('Item', function($resource){
   return $resource('/_get_user_items', {}, {
     'users':{isArray:false},
@@ -43,33 +52,33 @@ angular.module('SortIt.services', ['ngResource'])
 })
 
 //Service that handles SSE connection between server and browser
-.service('EventSource', ['$rootScope', 'Item', 'Utils', function($rootScope, Item, Utils){
-
-  this.updateConnection = function(tags){
-    if($rootScope.events){
-      $rootScope.events.close();
+.service('EventSource', ['Item', 'Utils', function(Item, Utils){
+  this.updateConnection = function(scope){
+    if(scope.event){
+      scope.event.close();
     }
+    var activeTags = scope.userData.activeTags;
     /* Add listener for Server Sent Events  */
-    $rootScope.events = new EventSource('/stream?tags='+tags.join('&tags='));
-    $rootScope.events.onmessage = function (event) {
+    scope.event = new EventSource('/stream?tags='+activeTags.join('&tags='));
+    scope.event.onmessage = function (event) {
       /* sent url has been fetched, so get the item with its title  */
       if(event.data.indexOf('item:')===0){
         var title = Utils.getItemTitle(event.data);
-        Item.add({tags:$rootScope.activeTags, item:title}, function(data){
+        Item.add({tags:activeTags, item:title}, function(data){
           if(data.state==="success"){
-            $rootScope.userItems = data.items;
-            $rootScope.resolvingItems.pop();
+            scope.userData.userItems = data.items;
+            scope.userData.resolvingItems.pop();
           }
         });
       }else if(event.data === 'averages'){
-        Item.average({tags:$rootScope.activeTags}, function(data){
-          $rootScope.averageItems = data.items;
+        Item.average({tags:activeTags}, function(data){
+          scope.userData.averageItems = data.items;
         });
       }else if(event.data === 'error'){
-        $rootScope.resolvingItems.pop();
+        scope.userData.resolvingItems.pop();
       }
       if(event.id === "CLOSE"){
-        $rootScope.events.close();
+        scope.event.close();
       }
     };
   };

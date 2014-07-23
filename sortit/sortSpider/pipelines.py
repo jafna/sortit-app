@@ -13,7 +13,7 @@ class CustomImagesPipeline(ImagesPipeline):
 	def get_images(self, response, request, info):
 		path = self.file_path(request, response=response, info=info)
 		orig_image = Image.open(StringIO(response.body))
-		size = (122,230)
+		size = (300,300)
 		image, buf = self.convert_image(orig_image, size)
 		yield path, image, buf
 

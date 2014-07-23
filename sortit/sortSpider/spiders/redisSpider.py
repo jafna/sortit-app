@@ -107,6 +107,7 @@ class RedisspiderSpider(RedisSpider):
         if domain=='amazondisabled' and alternateUrl:
             return Request(alternateUrl)
         return None
+
     # Spider main method
     def parse(self, response):
         selector = Selector(response)

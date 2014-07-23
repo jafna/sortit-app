@@ -3,7 +3,7 @@
     <input id="search-input" ng-model="searchInput" class="search-input" type="text" placeholder="Type hashtag, item title or introduce a new item from URL." autocomplete="off" ng-model="searchInput" ui-autocomplete="autocompleteOptions"/>
     <input type="submit" id="submit" value="Add">
   </div>
-  <list-active-tags></list-active-tags>
+  <list-active-tags tags="userData.activeTags"></list-active-tags>
   <div>
     <ul id="result">
     </ul>

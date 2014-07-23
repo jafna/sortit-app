@@ -1,0 +1,11 @@
+<div class="sort-item-container static">
+  <a href="{{item.url}}" ng-show="item.url">
+      <a href="{{item.url}}" class="title bottom">{{item.title}}</a>
+  </a>
+  <span class="title bottom" ng-hide="item.url">{{item.title}}</span>
+  <img class="background" ng-src="static/item_images/{{item.image}}"/>
+  <div class="item-image-container top" style="background: url(static/item_images/{{item.image}}) no-repeat;">
+    <img id="image" ng-src="static/item_images/{{item.image}}"/>
+  </div>
+</div>
+

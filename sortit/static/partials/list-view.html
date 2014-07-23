@@ -1,31 +1,11 @@
-<table class="list-table">
-  <tr>
-    <td class="text-container">
-      <div class="light-text vertical">My sort</div>
-    </td>
-    <td rowspan="2">
-      <div class="list-view">
-        <div class="user-items-container">
-          <span class="light-text" ng-hide="userItems.length || resolvingItems.length">There seems to be nothing here. Start adding items from text field!</span>
-          <list-items items="userItems" pending-items="resolvingItems"></list-items>
-        </div>
-        <div class="color-gradient"></div>
-        <list-static-items items="averageItems"></list-static-items>
-      </div>
-    </td>
-  </tr>
-  <tr>
-    <td class="text-container">
-      <div class="light-text vertical">Average</div>
-    </td>
-  </tr>
-</table>
-<div ng-show="$root.channels.length" class="channels-container">
+<sorting user-data="userData"></sorting>
+
+<div ng-show="userData.channels.length" class="channels-container">
   <h2>
     Latest activity under
-    <div ng-repeat="tag in $root.activeTags" class="tag-container">
+    <div ng-repeat="tag in userData.activeTags" class="tag-container">
       #{{tag}}
     </div>
   </h2>
-  <list-active-channels></list-active-channels>
+  <list-active-channels tags="userData.activeTags"></list-active-channels>
 <div>

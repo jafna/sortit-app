@@ -1,48 +1,46 @@
 'use strict';
 /* Controllers */
 angular.module('SortIt.controllers', ['SortIt.services'])
-.controller('IndexController', [ '$rootScope', 'Item', 'EventSource', function($rootScope, Item, EventSource){
-  $rootScope.activeTags = [];
-
-  Item.channels({tags:$rootScope.activeTags}, function(data){
-    if(data.state==="success"){
-      $rootScope.channels = data.channels;
-    }
+.controller('MainController', ['$scope', 'EventSource', 'UserData', function($scope, EventSource, UserData){
+  $scope.userData = UserData;
+  $scope.$watchCollection('userData.activeTags', function(){
+    EventSource.updateConnection($scope);
   });
-
-  EventSource.updateConnection($rootScope.activeTags);
 }])
-.controller('ViewController',['$rootScope', '$routeParams', 'Item', 'EventSource', function($rootScope, $routeParams, Item, EventSource) {
-  $rootScope.activeTags = $routeParams.tags.split('+');
+.controller('IndexViewController', function(){
+  console.log("index");
+})
+.controller('TagViewController',['$scope', '$routeParams', 'Item', 'UserData', function($scope, $routeParams, Item, UserData) {
+  UserData.activeTags = $routeParams.tags.split('+');
+  $scope.userData = UserData;
 
-  Item.average({tags:$rootScope.activeTags}, function(data){
+  Item.average({tags:$scope.userData.activeTags}, function(data){
     if(data.state==="success"){
-      $rootScope.averageItems = data.items;
+      UserData.averageItems = data.items;
     }
   });
 
-  Item.users({tags:$rootScope.activeTags},function(data){
+  Item.users({tags:$scope.userData.activeTags}, function(data){
     if(data.state==="success"){
-      $rootScope.userItems = data.items;
+      UserData.userItems = data.items;
     }
   });
 
-  Item.channels({tags:$rootScope.activeTags}, function(data){
+  Item.channels({tags:$scope.userData.activeTags}, function(data){
     if(data.state==="success"){
-      $rootScope.channels = data.channels;
+      UserData.channels = data.channels;
     }
   });
-
-  EventSource.updateConnection($rootScope.activeTags);
 }])
 
-.controller('SearchBarController', ['$rootScope', '$scope', 'Search', 'Item', 'Utils', function($rootScope, $scope, Search, Item, Utils){
+.controller('SearchBarController', ['$scope', 'UserData', 'Item', 'Search', 'Utils', function($scope, UserData, Item, Search, Utils){
+  $scope.userData = UserData;
   $scope.autocompleteOptions = {
     options:{
       source: function (request, response) {
         Search.get({searchString:$scope.searchInput}, function(data){
           var result = [];
-          angular.forEach(data.results, function(value, key){
+          angular.forEach(data.results, function(value){
             /* every response string has 'item:' at front*/
             var sliced = Utils.getItemTitle(value);
             result.push(sliced);
@@ -53,66 +51,39 @@ angular.module('SortIt.controllers', ['SortIt.services'])
       minLength: 1,
       focus: function(event){
         event.preventDefault();
-        /*$scope.searchInput = ui.item.label;*/
+        /*scope.searchInput = ui.item.label;*/
       },
       select: function(event, ui){
         event.preventDefault();
-        Item.add({tags:$rootScope.activeTags, item:ui.item.value},function(data){
+        Item.add({tags:$scope.userData.activeTags, item:ui.item.value},function(data){
           if(data.state==="success"){
-            $rootScope.userItems = data.items;
+            $scope.userData.userItems = data.items;
           }
         });
-        $rootScope.$apply(function(scope){
-          scope.searchInput = "";
-        });
+        $scope.searchInput = "";
         return false;
       }
     },
     methods:{}
   };
-
-  $scope.submit = function(){
-    var responseFunction = function(data){
-      if(data.state === "success"){
-        $rootScope.userItems = data.items;
-      }else if(data.state === "resolving"){
-        $rootScope.resolvingItems.push({title:'resolving'});
-      }
-    };
-    var string = $scope.searchInput, i, text;
-    if(string){
-      var queries = string.split(" ");
-      for(i = 0; i<queries.length; i++){
-        text = queries[i];
-        if(Utils.isURL(text)){
-          Item.save({tags:$rootScope.activeTags,url:text}, responseFunction);
-        }else if(text.indexOf('#')===0){
-          $rootScope.activeTags.push(text.slice(1));
-        }
-      }
-      $rootScope.$apply(function(scope){
-        scope.searchInput = "";
-      });
-    }
-  };
 }])
 
-.controller('UserSortableController', ['$rootScope', '$scope', 'Item', function($rootScope, $scope, Item){
+.controller('UserSortableController', ['$scope', 'Item', 'UserData', function($scope, Item, UserData){
   $scope.sortableOptions = {
     connectWith: '.connected-list',
     placeholder: 'hilight',
     tolerance: 'pointer',
     forcePlaceholderSize: true,
     start:function(){
-      $rootScope.$apply(function(scope){
-        scope.userDragging = true;
+      $scope.$apply(function(){
+        UserData.dragging = true;
       });
     },
     stop: function() {
       var items = $('#sortable').sortable('toArray');
-      Item.update({tags:$rootScope.activeTags,items:items});
-      $rootScope.$apply(function(scope){
-        scope.userDragging = false;
+      Item.update({tags:$scope.activeTags,items:items});
+      $scope.$apply(function(){
+        UserData.dragging = false;
       });
     },
 
