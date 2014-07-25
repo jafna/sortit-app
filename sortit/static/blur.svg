@@ -1,16 +1,5 @@
 <svg version="1.1" xmlns="http://www.w3.org/2000/svg">
-   <filter id="blur">
-       
-<feMorphology operator="dilate" radius="8" />
+   <filter id="blur" filterRes="4">    
+	<feGaussianBlur stdDeviation="2"/>
    </filter>
-<filter id="drop-shadow">
-<feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
-<feOffset dx="0" dy="10" result="offsetblur"/>
-<feFlood flood-color="rgba(0,0,0,0.5)"/>
-<feComposite in2="offsetblur" operator="in"/>
-<feMerge>
-<feMergeNode/>
-<feMergeNode in="SourceGraphic"/>
-</feMerge>
-</filter>
 </svg>

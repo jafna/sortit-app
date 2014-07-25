@@ -1,11 +1,11 @@
-<ul ui-sortable="sortableOptions" ng-model="items" class="item-list
+<ul ng-model="items" class="item-list
   connected-list" ng-controller="UserSortableController" id="sortable">
   <li ng-repeat="item in items" id="{{item.title}}">
     <draggable-item item="item"></draggable-item>
   </li>
 
-  <li ng-repeat="item in userData.pendingItems" class="resolving">
-    <div class="sort-item-container arrow-down">
+  <li ng-repeat="item in userData.pendingItems" class="resolving disable-drag">
+    <div class="sort-item-container draggable">
       <p>{{item.title}}</p>
       <div class="spinner">
         <div class="rect1"></div>

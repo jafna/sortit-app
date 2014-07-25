@@ -67,7 +67,7 @@ angular.module('SortIt.services', ['ngResource'])
         Item.add({tags:activeTags, item:title}, function(data){
           if(data.state==="success"){
             scope.userData.userItems = data.items;
-            scope.userData.resolvingItems.pop();
+            scope.userData.pendingItems.pop();
           }
         });
       }else if(event.data === 'averages'){
@@ -75,7 +75,7 @@ angular.module('SortIt.services', ['ngResource'])
           scope.userData.averageItems = data.items;
         });
       }else if(event.data === 'error'){
-        scope.userData.resolvingItems.pop();
+        scope.userData.pendingItems.pop();
       }
       if(event.id === "CLOSE"){
         scope.event.close();

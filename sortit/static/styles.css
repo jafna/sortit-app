@@ -15,6 +15,10 @@ h2{
   margin-top: 30px;
 }
 
+#trash-list .draggable{
+  visibility:hidden;
+}
+
 .top-nav-container {
   padding:5px;
   padding-bottom: 20px;
@@ -103,7 +107,7 @@ h2{
   padding:5px;
   background-color:#FFB8FF;
   display:inline-block;
-  margin-left:10px;
+  margin:5px;
 }
 
 .tag-container a {
@@ -117,7 +121,12 @@ h2{
 .tag-container:hover .close-button{
   color:white;
 }
-
+.drop-down{
+  overflow:hidden;
+  max-width:700px;
+  z-index:100;
+  font-family: "ClearSans", sans-serif;
+}
 .list-view {
   margin:15px;
   display:inline-block;
@@ -133,11 +142,6 @@ z-index:-1;
 height:100%;
 mask:url('average_mask.svg#logo_mask');
 -webkit-mask-image:url('average_mask.svg');
--webkit-filter: blur(5px) brightness(1);
--moz-filter   : url('blur.svg#blur');
--ms-filter    : url('blur.svg#blur');
--o-filter     : url('blur.svg#blur');
-filter        : url('blur.svg#blur');
 }
 
 .sort-item-container {
@@ -152,12 +156,6 @@ overflow:hidden;
 position:relative;
 display:inline-block;
 background-size:100%;
-
--webkit-filter: drop-shadow(1px 1px 4px rgba(0,0,0,0.75));
--moz-filter: drop-shadow(1px 1px 4px rgba(0,0,0,0.75));
--ms-filter: drop-shadow(1px 1px 4px rgba(0,0,0,0.75));
--o-filter: drop-shadow(1px 1px 4px rgba(0,0,0,0.75));
-filter:url('blur.svg#drop-shadow');
 }
 .sort-item-container .static{
   background-image:url(average_mask.svg) no-repeat;
@@ -171,7 +169,7 @@ filter:url('blur.svg#drop-shadow');
   display: inherit;
   text-decoration:none;
   position:absolute;
-  z-index:100;
+  z-index:90;
 }
 .sort-item-container .title.bottom{
   bottom:0px;
@@ -182,7 +180,7 @@ filter:url('blur.svg#drop-shadow');
 .sort-item-container>img {
   z-index:-1;
   height:100%;
-  -webkit-filter: blur(5px) brightness(1);
+  -webkit-filter: blur(2px);
   -moz-filter   : url('blur.svg#blur');
   -ms-filter    : url('blur.svg#blur');
   -o-filter     : url('blur.svg#blur');
@@ -232,7 +230,7 @@ filter:url('blur.svg#drop-shadow');
 .item-list {
   list-style:none;
   display:inline-block;
-  margin-bottom:65px;
+  margin-bottom:15px;
   margin-left:0px;
 }
 
@@ -294,6 +292,7 @@ filter:url('blur.svg#drop-shadow');
   background: -ms-linear-gradient(left,  #31ff2d 0%,#fff968 52%,#ff2828 100%);
   background: linear-gradient(to right,  #31ff2d 0%,#fff968 52%,#ff2828 100%);
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#31ff2d', endColorstr='#ff2828',GradientType=1 );
+  position:relative;
 }
 
 .list-table {
@@ -316,6 +315,13 @@ filter:url('blur.svg#drop-shadow');
   font-size:25px;
   color: #9595AB;
 }
+
+.item-counter{
+  position:absolute;
+  right:0px;
+  top:-30px;
+}
+
 .small-text {
   font-size:15px;
 }

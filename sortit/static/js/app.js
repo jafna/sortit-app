@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('SortIt', ['ngRoute', 'SortIt.directives', 'SortIt.services', 'SortIt.controllers', 'ui.autocomplete', 'ui.sortable'])
+angular.module('SortIt', ['ngRoute', 'SortIt.directives', 'SortIt.services', 'SortIt.controllers'])
 .config(['$routeProvider', '$locationProvider',
         function($routeProvider, $locationProvider) {
           $routeProvider

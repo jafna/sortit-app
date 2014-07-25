@@ -9,7 +9,9 @@
           <span class="light-text" ng-hide="userData.userItems.length || userData.resolvingItems.length">There seems to be nothing here. Start adding items from text field!</span>
           <list-items items="userData.userItems" pending-items="userData.resolvingItems"></list-items>
         </div>
-        <div class="color-gradient"></div>
+        <div class="color-gradient">
+          <span class="light-text item-counter">{{userData.userItems.length}}/6</span>
+        </div>
         <list-static-items items="userData.averageItems"></list-static-items>
       </div>
     </td>

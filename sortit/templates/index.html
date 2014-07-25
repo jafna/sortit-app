@@ -4,18 +4,18 @@
   <meta charset="utf-8"/>
   <title>SortIt!</title>
   <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='normalize.css') }}"/>
-  <link href="{{ url_for('static', filename='jquery/css/smoothness/jquery-ui-1.10.4.custom.css') }}" rel="stylesheet"/>
   <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}"/>
   <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='spinner.css') }}"/>
+
   <script src="{{ url_for('static', filename='js/lib/lodash.min.js') }}"></script>
-  <script src="{{ url_for('static', filename='jquery/js/jquery-1.10.2.js') }}"></script>
-  <script src="{{ url_for('static', filename='jquery/js/jquery-ui-1.10.4.custom.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/lib/complete.ly.1.0.1.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/lib/Sortable.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/lib/EventSource.js') }}"></script>
+  
   <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.19/angular.min.js"></script>
-  <script src="{{ url_for('static', filename='js/lib/autocomplete.js') }}"></script>
   <script src="{{ url_for('static', filename='js/lib/angular-resource.min.js') }}"></script>
   <script src="{{ url_for('static', filename='js/lib/angular-route.min.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/lib/EventSource.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/lib/sortable.js') }}"></script>
+
   <script src="{{ url_for('static', filename='js/app.js') }}"></script>
   <script src="{{ url_for('static', filename='js/services.js') }}"></script>
   <script src="{{ url_for('static', filename='js/controllers.js') }}"></script>
@@ -30,12 +30,11 @@
     </a>
   </div>
   <div class="topbox">
-    <div class="trash-container" ng-class="{'showtrash':userDragging}">
+    <div class="trash-container" ng-class="{'showtrash':userData.dragging}">
       <trash></trash>
     </div>
     <div class="search-container">
-      <span class="small-text light-text">Alpha version: Domains restricted to imdb.com, ebay.com, ratebeer.com and
-        amazon.com.</span><br/>
+      <span class="small-text light-text">Alpha version: Domains restricted to imdb.com, ebay.com, amazon.com and ratebeer.com.</span><br/>
       <search-bar user-data="userData"></search-bar>
     </div>
   </div>

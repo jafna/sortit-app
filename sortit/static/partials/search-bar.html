@@ -1,5 +1,5 @@
 <form ng-submit="submit()" ng-controller="SearchBarController">
-  <div class="topbox input">
+  <div class="topbox input" id="autocomplete-container">
     <input id="search-input" ng-model="searchInput" class="search-input" type="text" placeholder="Type hashtag, item title or introduce a new item from URL." autocomplete="off" ng-model="searchInput" ui-autocomplete="autocompleteOptions"/>
     <input type="submit" id="submit" value="Add">
   </div>

@@ -56,7 +56,6 @@ angular.module('SortIt.directives', ['SortIt.services'])
     link:function(scope){
       scope.showChannel = function(newTags){
         scope.tags = newTags;
-        console.log("scope tags changed");
       };
 
       Item.channels({tags:scope.tags}, function(data){
@@ -69,21 +68,22 @@ angular.module('SortIt.directives', ['SortIt.services'])
   };
 }])
 
-.directive('searchBar', ['Search', 'Item', 'Utils', function(Search, Item, Utils){
+.directive('searchBar', ['Item', 'Utils', function(Item, Utils){
   return {
     templateUrl:'static/partials/search-bar.html',
     restrict:'E',
     scope:false,
     link:function(scope){
+      var responseFunction = function(data){
+        if(data.state === "success"){
+          scope.userData.userItems = data.items;
+        }else if(data.state === "resolving"){
+          scope.userData.pendingItems.push({title:'resolving'});
+        }
+      };
       scope.submit = function(){
-        var responseFunction = function(data){
-          if(data.state === "success"){
-            scope.userData.userItems = data.items;
-          }else if(data.state === "resolving"){
-            scope.userData.resolvingItems.push({title:'resolving'});
-          }
-        };
-        var string = scope.searchInput, i, text;
+        var string = this.searchInput;
+        var i, text;
         if(string){
           var queries = string.split(" ");
           for(i = 0; i<queries.length; i++){
@@ -91,11 +91,15 @@ angular.module('SortIt.directives', ['SortIt.services'])
             if(Utils.isURL(text)){
               Item.save({tags:scope.userData.activeTags,url:text}, responseFunction);
             }else if(text.indexOf('#')===0){
-              scope.userData.activeTags.push(text.slice(1));
+              if(!_.contains(scope.userData.activeTags, text.slice(1))){
+                scope.userData.activeTags.push(text.slice(1));
+              } else {
+                throw "Tag already chosen!";
+              }
             }
           }
-          scope.searchInput = "";
         }
+        this.searchInput = "";
       };
     }
   };
@@ -106,7 +110,18 @@ angular.module('SortIt.directives', ['SortIt.services'])
     templateUrl:'static/partials/trash.html',
     restrict:'E',
     link:function(scope){
-      scope.trash = [];
+      var trashElement = document.getElementById('trash-list');
+      new Sortable(trashElement, 
+                   {group:'list-group',
+                     onEnd:function(event){
+                       _.remove(scope.userData.userItems, function(currentObject) {
+                             return currentObject.title === event.item.id;
+                       });
+                       event.item.remove();
+                       scope.$apply(function(){
+                         scope.userData.dragging = false;
+                       });}
+                   });
     }
   };
 })

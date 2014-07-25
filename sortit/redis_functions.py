@@ -17,7 +17,7 @@ def event_stream(channels):
             pubsub.unsubscribe(i)
 
 def add_item_for_user(item, categories, user):
-    userItems = get_users_ratings(user, categories)
+    userItems = get_users_ratings(user, categories, globals.MAX_ITEMS_IN_ONE_SORT)
     userItems.append(item)
     update_ratings(userItems, categories, user)
     return userItems
@@ -69,6 +69,8 @@ def update_activities(categories):
 #   Updates users ordered list AND average
 ###
 def update_ratings(listOfItems, categories, user):
+    #limit item count
+    listOfItems = listOfItems[:globals.MAX_ITEMS_IN_ONE_SORT+1]
     categories.sort()
     pipe = redis.pipeline()
     counter = 0
@@ -78,9 +80,9 @@ def update_ratings(listOfItems, categories, user):
         counter+=1
         pipe.zadd('tags:'+tags+':user:'+user, counter, item)
     pipe.execute()
-    oldAverage = get_average_ratings(categories)
+    oldAverage = get_average_ratings(categories, globals.MAX_ITEMS_IN_ONE_SORT)
     redis_update_item_average(user, '+'.join(categories))
-    newAverage = get_average_ratings(categories)
+    newAverage = get_average_ratings(categories, globals.MAX_ITEMS_IN_ONE_SORT)
     #if average has changed, notify possible active clients to update average!
     if(newAverage!=oldAverage):
         redis.publish('tagchannel:'+tags,'averages')
@@ -101,6 +103,15 @@ def get_average_ratings(categories, limit=-1):
 def get_users_ratings(userid, categories, limit=-1):
     categories.sort()
     return redis.zrevrange('tags:'+'+'.join(categories)+':user:'+userid, 0, limit)
+
+def is_adding_item_allowed(item, categories, userid):
+    categories.sort()
+    pipe = redis.pipeline()
+    pipe.zcard('tags:'+'+'.join(categories)+':user:'+userid)
+    pipe.zrank('tags:'+'+'.join(categories)+':user:'+userid, item)
+    [itemCount, itemRank] = pipe.execute()
+    return (itemCount<globals.MAX_ITEMS_IN_ONE_SORT+1) and not itemRank
+
 
 ###
 # Redis LUA scripts that are loaded into redis on init. SHA strings for these functions are kept on global variables.
