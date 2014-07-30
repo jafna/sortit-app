@@ -14,7 +14,7 @@ NEWSPIDER_MODULE = 'sortSpider.spiders'
 
 DEFAULT_ITEM_CLASS = 'sortSpider.items.SortItItem'
 ITEM_PIPELINES = {'sortSpider.pipelines.CustomImagesPipeline': 1}
-IMAGES_STORE = '/home/mika/sortit-master/sortit/static/item_images/'
+IMAGES_STORE = 'path where the fetched images should be saved'
 
 DEFAULT_REQUEST_HEADERS = {
             'Accept-Language': 'en'
