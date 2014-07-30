@@ -1,5 +1,3 @@
-import time,os,hashlib,tldextract,collections
-from urlparse import urlparse
 from scrapy_redis.spiders import RedisSpider
 from scrapy.selector import Selector
 from scrapy.http import Request
@@ -7,13 +5,15 @@ from scrapy.item import BaseItem
 from sortSpider.items import SortItItem
 from sortSpider.settings import IMAGES_STORE
 from sortSpider.utils import random_pastel_color
+import time,os,hashlib,tldextract,collections
+import urlparse
 import redis
 
 def timestamp():
     ts = time.time()
     return ts
 
-def get_first(iterable, default=None):
+def getFirst(iterable, default=None):
     iterable = [x for x in iterable if x]
     if iterable:
         for item in iterable:
@@ -23,11 +23,11 @@ def get_first(iterable, default=None):
         return default
 
 def getDomain(url):
-    parse_object = urlparse(url)
+    parse_object = urlparse.urlparse(url)
     domainWithTld = parse_object.netloc
     return tldextract.extract(domainWithTld).domain
 
-def add_item(item):
+def addItem(item):
     if item is None:
         return
     r = redis.Redis()
@@ -47,7 +47,7 @@ def add_item(item):
     #title added to set for easier access
     pipe.hset('item:'+title, 'title', title)
     pipe.hset('item:'+title, 'color', itemColor)
-    pipe.hset('item:'+title, 'image', item['images'][0]['path'])
+    pipe.hset('item:'+title, 'image', item['images'])
     pipe.hset('item:'+title, 'url', item['url'])
 
     pipe.set('url:'+item['given_url'],title)
@@ -83,22 +83,32 @@ class RedisspiderSpider(RedisSpider):
                 selector.xpath('//*[@itemscope=""]//*[@itemprop="name"]').extract(),
                 selector.xpath('//meta[@name="title"]/text()').extract(),
                 selector.xpath('//head/title[1]/text()').extract()]
-        return get_first(titleList)
+        return getFirst(titleList)
 
     def parseItemURL(self, selector, response):
         urlList =[
                 selector.xpath('//link[@rel="canonical"]/@href').extract(),
                 response.url]
-        return get_first(urlList)
+        return getFirst(urlList)
 
-    def parseItemImage(self, selector):
+    def fixRelativePaths(self, listOfURLs, responseURL):
+        newList = []
+        parsedURL = urlparse.urlparse(responseURL)
+        baseURL = parsedURL.scheme+'://'+parsedURL.netloc
+        for a in listOfURLs:
+            newList.append(urlparse.urljoin(baseURL, a))
+        return newList
+
+    def parseItemImage(self, selector, responseURL):
         #print selector.xpath('//img[contains(@src,"base64")/@src]').extract()
-        imgList = [
-                selector.xpath('//meta[@property="og:image"]/@content').extract(),
-                selector.xpath('//*[@itemscope=""]//*[@itemprop="image"]/@src').extract(),
-                selector.xpath('//img/@src').extract()]
-        urlToImg = get_first(imgList)
-        return urlToImg
+        imgList = []
+        imgList.extend(selector.xpath('//meta[@property="og:image"]/@content').extract())
+        imgList.extend(selector.xpath('//*[@itemscope=""]//*[@itemprop="image"]/@src').extract())
+        imgList.extend(selector.xpath('//img/@src').extract())
+        #urlToImg = getFirst(imgList)
+        imgList = imgList[:5]
+        imgList = self.fixRelativePaths(imgList, responseURL)
+        return imgList
 
     def handleDomainSpecificTricks(self, url, selector):
         domain = getDomain(url)
@@ -116,7 +126,7 @@ class RedisspiderSpider(RedisSpider):
             return request
         item = SortItItem()
         item['title'] = self.parseItemTitle(selector)
-        item['image_urls'] = [self.parseItemImage(selector)]
+        item['image_urls'] = self.parseItemImage(selector, response.url)
         item['url'] = self.parseItemURL(selector, response)
         item['response_url'] = response.url
         item['given_url'] = response.meta['start_url']

@@ -223,7 +223,7 @@ background-size:100%;
 .channel-container{
   margin:10px;
   padding:5px;
-  border:1px solid;
+  border:1px dotted;
   color:gray;
   display:inline-block;
 }
@@ -245,6 +245,9 @@ background-size:100%;
   float:left;
   margin-right: 10px;
   margin-left: 10px;
+}
+.static-list>li{
+  transition: all 0.2s ease-out;
 }
 
 .resolving .sort-item-container {
