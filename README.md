@@ -2,7 +2,7 @@
 SortIt-app
 ==========
 
-Rate things by draging and droping them!
+Rate everything on the Internet by drag'n drop!
 
 Requirements
 ------------
