@@ -4,17 +4,6 @@ SortIt-app
 
 Rate everything on the Internet by drag'n drop!
 
-Requirements
-------------
-* Python (2.7)
-* Redis (2.6.0+ because SortIt uses Lua scripts. Notice that Ubuntu's packet manager ships with older)
-* Flask
-* Flask-And-Redis
-* Flask-Testing
-* Flask-Script
-* Nose
-* Scrapy
-* Scrapy-Redis
 
 Run
 ===
